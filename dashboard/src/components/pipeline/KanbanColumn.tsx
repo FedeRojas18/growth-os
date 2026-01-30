@@ -1,5 +1,6 @@
 import type { Target, TargetState } from '../../types';
 import { TargetCard } from './TargetCard';
+import { EmptyColumn } from '../shared/EmptyState';
 
 interface KanbanColumnProps {
   state: TargetState;
@@ -7,40 +8,50 @@ interface KanbanColumnProps {
   onTargetClick?: (target: Target) => void;
 }
 
-const stateColors: Record<TargetState, string> = {
-  'New': 'bg-gray-500',
-  'Contacted': 'bg-blue-500',
-  'Replied': 'bg-yellow-500',
-  'Meeting': 'bg-orange-500',
-  'Passed': 'bg-green-500',
-  'Closed-Lost': 'bg-red-500',
-  'Nurture': 'bg-purple-500',
+const stateConfig: Record<TargetState, { color: string; bgColor: string }> = {
+  'New': { color: 'bg-slate-500', bgColor: 'bg-slate-50' },
+  'Contacted': { color: 'bg-blue-500', bgColor: 'bg-blue-50' },
+  'Replied': { color: 'bg-amber-500', bgColor: 'bg-amber-50' },
+  'Meeting': { color: 'bg-orange-500', bgColor: 'bg-orange-50' },
+  'Passed': { color: 'bg-emerald-500', bgColor: 'bg-emerald-50' },
+  'Closed-Lost': { color: 'bg-red-500', bgColor: 'bg-red-50' },
+  'Nurture': { color: 'bg-violet-500', bgColor: 'bg-violet-50' },
 };
 
 export function KanbanColumn({ state, targets, onTargetClick }: KanbanColumnProps) {
+  const config = stateConfig[state];
+
   return (
-    <div className="flex-shrink-0 w-72">
-      <div className="flex items-center gap-2 mb-3">
-        <div className={`w-2 h-2 rounded-full ${stateColors[state]}`} />
-        <h3 className="font-medium text-gray-700">{state}</h3>
-        <span className="text-sm text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
+    <div className="flex-shrink-0 w-[280px]">
+      {/* Column Header */}
+      <div className="flex items-center gap-2.5 mb-4 px-1">
+        <div className={`w-2 h-2 rounded-full ${config.color}`} />
+        <h3 className="font-semibold text-gray-700 text-sm tracking-tight">{state}</h3>
+        <span className={`
+          text-xs font-medium px-2 py-0.5 rounded-full
+          ${targets.length > 0 ? `${config.bgColor} text-gray-600` : 'bg-gray-100 text-gray-400'}
+        `}>
           {targets.length}
         </span>
       </div>
 
+      {/* Cards */}
       <div className="space-y-3">
-        {targets.map((target) => (
-          <TargetCard
+        {targets.map((target, index) => (
+          <div
             key={target.id}
-            target={target}
-            onClick={() => onTargetClick?.(target)}
-          />
+            className="animate-fade-in"
+            style={{ animationDelay: `${index * 0.05}s` }}
+          >
+            <TargetCard
+              target={target}
+              onClick={() => onTargetClick?.(target)}
+            />
+          </div>
         ))}
 
         {targets.length === 0 && (
-          <div className="text-center py-8 text-gray-400 text-sm border-2 border-dashed border-gray-200 rounded-lg">
-            No targets
-          </div>
+          <EmptyColumn message="No targets" />
         )}
       </div>
     </div>

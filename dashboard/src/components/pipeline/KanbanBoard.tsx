@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { Target, TargetState } from '../../types';
 import { KanbanColumn } from './KanbanColumn';
 import { TargetModal } from './TargetModal';
+import { Filter, ChevronDown } from 'lucide-react';
 
 interface KanbanBoardProps {
   targets: Target[];
@@ -26,29 +27,45 @@ export function KanbanBoard({ targets }: KanbanBoardProps) {
 
   return (
     <div>
-      {/* Filters */}
-      <div className="mb-4 flex items-center gap-4">
-        <label className="text-sm text-gray-600">
-          Filter by BU:
-          <select
-            value={buFilter}
-            onChange={(e) => setBuFilter(e.target.value)}
-            className="ml-2 border border-gray-300 rounded px-2 py-1 text-sm"
-          >
-            {buOptions.map((bu) => (
-              <option key={bu} value={bu}>
-                {bu === 'all' ? 'All BUs' : bu}
-              </option>
-            ))}
-          </select>
-        </label>
-        <span className="text-sm text-gray-500">
-          Showing {filteredTargets.length} of {targets.length} targets
-        </span>
+      {/* Filters Bar */}
+      <div className="mb-5 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 text-sm text-gray-500">
+            <Filter className="w-4 h-4" />
+            <span>Filter:</span>
+          </div>
+          <div className="relative">
+            <select
+              value={buFilter}
+              onChange={(e) => setBuFilter(e.target.value)}
+              className="
+                appearance-none bg-white border border-gray-200 rounded-lg
+                pl-3 pr-8 py-1.5 text-sm text-gray-700
+                focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent
+                cursor-pointer hover:border-gray-300 transition-colors
+              "
+            >
+              {buOptions.map((bu) => (
+                <option key={bu} value={bu}>
+                  {bu === 'all' ? 'All Business Units' : bu}
+                </option>
+              ))}
+            </select>
+            <ChevronDown className="w-4 h-4 text-gray-400 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
+          </div>
+        </div>
+
+        <div className="text-sm text-gray-500">
+          <span className="font-medium text-gray-700">{filteredTargets.length}</span>
+          {filteredTargets.length !== targets.length && (
+            <span> of {targets.length}</span>
+          )}
+          <span> targets</span>
+        </div>
       </div>
 
       {/* Kanban Board */}
-      <div className="flex gap-4 overflow-x-auto pb-4">
+      <div className="flex gap-4 overflow-x-auto pb-4 -mx-2 px-2">
         {KANBAN_STATES.map((state) => (
           <KanbanColumn
             key={state}
