@@ -1,4 +1,4 @@
-const GITHUB_RAW_BASE = 'https://raw.githubusercontent.com/ffederojas/growth-os/main';
+const GITHUB_RAW_BASE = 'https://raw.githubusercontent.com/FedeRojas18/growth-os/main';
 
 export async function fetchMarkdownFromGitHub(path: string): Promise<string> {
   const url = `${GITHUB_RAW_BASE}/${path}`;
