@@ -1,0 +1,298 @@
+# Stakeholder Routing for Growth OS v3
+# Defines who receives which deliverables and via what channels
+
+stakeholders:
+  # BITWAGE TEAM
+  - name: "Ramiro"
+    role: "Bitwage SDR"
+    business_unit: Bitwage
+    email: "ramiro@example.com"  # UPDATE WITH REAL EMAIL
+    receives:
+      - bitwage-apollo-csv
+      - bitwage-messages
+      - weekly-brief
+    notification_channels:
+      slack: "#bitwage-outbound"
+      email: true
+    delivery_day: "Tuesday"
+    priority: high
+
+  - name: "Jonathan"
+    role: "Bitwage Growth"
+    business_unit: Bitwage
+    email: "jonathan@example.com"  # UPDATE WITH REAL EMAIL
+    receives:
+      - bitwage-apollo-csv
+      - bitwage-messages
+      - weekly-brief
+    notification_channels:
+      slack: "#bitwage-outbound"
+      email: true
+    delivery_day: "Tuesday"
+    priority: high
+
+  # TEAMPAY TEAM
+  - name: "Meridith"
+    role: "TeamPay SDR"
+    business_unit: TeamPay
+    email: "meridith@example.com"  # UPDATE WITH REAL EMAIL
+    receives:
+      - teampay-apollo-csv
+      - teampay-messages
+      - partner-opportunities
+    notification_channels:
+      slack: "#teampay-outbound"
+      email: true
+    delivery_day: "Tuesday"
+    priority: high
+
+  - name: "Morgan"
+    role: "TeamPay Growth"
+    business_unit: TeamPay
+    email: "morgan@example.com"  # UPDATE WITH REAL EMAIL
+    receives:
+      - teampay-apollo-csv
+      - teampay-messages
+      - partner-opportunities
+    notification_channels:
+      slack: "#teampay-outbound"
+      email: true
+    delivery_day: "Tuesday"
+    priority: high
+
+  # PAYSTAND AE
+  - name: "Devin"
+    role: "Paystand AE"
+    business_unit: Paystand
+    email: "devin@example.com"  # UPDATE WITH REAL EMAIL
+    receives:
+      - ar-qualified-leads
+      - pipeline-handoffs
+    notification_channels:
+      slack: "DM"
+      email: true
+    delivery_day: "As available"
+    priority: medium
+
+  # PARTNERSHIPS TEAM
+  - name: "Alexandra"
+    role: "Mining Partner Intros"
+    business_unit: Mining
+    email: "alexandra@example.com"  # UPDATE WITH REAL EMAIL
+    receives:
+      - mining-targets
+      - mining-partner-briefs
+      - partner-intro-scripts
+    notification_channels:
+      slack: "DM"
+      email: true
+    delivery_day: "Wednesday"
+    priority: medium
+
+  - name: "Christian"
+    role: "Partnerships VP"
+    business_unit: Strategic
+    email: "christian@example.com"  # UPDATE WITH REAL EMAIL
+    receives:
+      - strategic-partner-briefs
+      - formal-intro-decks
+      - partnership-opportunities
+    notification_channels:
+      slack: "DM"
+      email: true
+    delivery_day: "Wednesday"
+    priority: high
+
+  # CHANNEL TEAM (ALL)
+  - name: "Channel Team"
+    role: "Channel Reporting"
+    business_unit: All
+    receives:
+      - slack-heartbeat
+      - pdf-scoreboard
+      - slide-deck
+      - full-report
+    notification_channels:
+      slack: "#bitcoin-channel"
+      email: true
+    delivery_day: "Friday"
+    priority: high
+
+# ROUTING RULES
+routing_rules:
+  # BU-specific routing
+  bitwage_targets:
+    recipients:
+      - Ramiro
+      - Jonathan
+    format: "apollo-csv + messages"
+    channel: "#bitwage-outbound"
+
+  teampay_targets:
+    recipients:
+      - Meridith
+      - Morgan
+    format: "apollo-csv + messages"
+    channel: "#teampay-outbound"
+
+  mining_targets:
+    recipients:
+      - Alexandra
+    format: "csv + briefs"
+    channel: "DM"
+
+  # Partner routing
+  mining_partners:
+    recipients:
+      - Alexandra
+    format: "pdf-brief + intro-scripts"
+    channel: "DM"
+
+  strategic_partners:
+    recipients:
+      - Christian
+    format: "pdf-brief + intro-scripts + deck"
+    channel: "DM"
+
+  # Report routing
+  weekly_reports:
+    recipients:
+      - Channel Team
+    format: "slack + pdf + pptx"
+    channel: "#bitcoin-channel"
+
+# NOTIFICATION TEMPLATES
+notification_templates:
+  bu_pack_ready:
+    slack_template: |
+      🎯 *{bu_name} Execution Pack Ready — Week of {date}*
+
+      {target_count} targets ready for outreach:
+      {target_list}
+
+      📎 Files:
+      • {csv_link}
+      • {messages_link}
+
+      cc: @{owner}
+
+    email_subject: "{bu_name} Execution Pack — Week of {date}"
+    email_template: |
+      Hi {name},
+
+      This week's {bu_name} targets are attached:
+      - {target_count} targets in Apollo CSV format
+      - Message templates organized by sequence step
+
+      Key thesis: {thesis_summary}
+
+      Files attached:
+      - {bu_name}-apollo.csv
+      - {bu_name}-messages.md
+
+      Let me know if you have questions.
+
+      — Fede
+
+  partner_brief_ready:
+    slack_template: |
+      🤝 *Partner Brief Ready: {partner_name}*
+
+      One-page brief + intro scripts attached.
+      Partner owner: @{owner}
+
+      📎 Files:
+      • {pdf_link}
+      • {intro_scripts_link}
+
+    email_subject: "Partner Brief: {partner_name}"
+    email_template: |
+      Hi {name},
+
+      Research complete for {partner_name}. Attached:
+      - One-page PDF brief (forwardable)
+      - LinkedIn intro script
+      - Email intro script
+
+      Partner type: {partner_type}
+      Opportunity: {opportunity_summary}
+
+      Ready to forward when you're ready.
+
+      — Fede
+
+  channel_report_ready:
+    slack_template: |
+      📊 *Channel Weekly Heartbeat — Week of {date}*
+
+      Scorecard: {score}/5 {status_emoji}
+      • Test plan shipped: {test_plan_status}
+      • Targets added: {targets_count} (target: 10-15)
+      • Pipeline movement: {movement_count} (target: ≥3)
+      • Partners advanced: {partners_count} (target: 1-2)
+      • Report shipped: {report_status}
+
+      🎯 Top wins:
+      {wins_list}
+
+      📈 Pipeline: {new_count} New | {contacted_count} Contacted | {replied_count} Replied | {meeting_count} Meeting
+
+      🔗 {scoreboard_link} | {dashboard_link}
+
+    email_subject: "Channel Report — Week of {date}"
+    email_template: |
+      Channel team,
+
+      Weekly report attached:
+      - Slack heartbeat (posted)
+      - PDF scoreboard (1-page visual)
+      - Slide deck (2-3 slides)
+
+      Scorecard: {score}/5
+      Top wins: {wins_summary}
+
+      Full details in attachments.
+
+      — Fede
+
+# DELIVERY SCHEDULE
+delivery_schedule:
+  monday:
+    - "Signal digest to Fede for thesis selection"
+
+  tuesday:
+    - "Bitwage pack to Ramiro/Jonathan"
+    - "TeamPay pack to Meridith/Morgan"
+
+  wednesday:
+    - "Partner briefs to Alexandra/Christian"
+    - "Pipeline check-in updates"
+
+  friday:
+    - "Channel report to Channel Team"
+    - "Weekly retrospective"
+
+# ESCALATION RULES
+escalation:
+  urgent_partner_opportunity:
+    notify:
+      - Christian
+    channel: "DM"
+    sla: "Same day"
+
+  high_value_target:
+    threshold: "Company size >500 OR Funding >$10M"
+    notify:
+      - Christian
+      - Relevant BU lead
+    channel: "DM + Slack"
+
+  pipeline_blocker:
+    examples:
+      - "No response after 3 follow-ups"
+      - "Buyer change"
+      - "Company acquisition"
+    notify:
+      - Fede
+      - BU lead
+    action: "Update pipeline state, discuss next steps"

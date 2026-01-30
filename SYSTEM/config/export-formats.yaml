@@ -1,0 +1,325 @@
+# Export Formats for Growth OS v3
+# Column mappings and format specifications for all exports
+
+# APOLLO CSV FORMAT
+apollo_csv:
+  filename_pattern: "{date}-{bu}-apollo.csv"
+
+  columns:
+    - field: "first_name"
+      header: "First Name"
+      required: true
+      max_length: 50
+
+    - field: "last_name"
+      header: "Last Name"
+      required: true
+      max_length: 50
+
+    - field: "email"
+      header: "Email"
+      required: false
+      validation: "email_format_or_research_needed"
+      flag_if_missing: true
+
+    - field: "linkedin_url"
+      header: "LinkedIn URL"
+      required: true
+      validation: "starts_with_https://linkedin.com/"
+
+    - field: "company"
+      header: "Company"
+      required: true
+      max_length: 100
+
+    - field: "title"
+      header: "Title"
+      required: true
+      max_length: 100
+
+    - field: "company_size"
+      header: "Company Size"
+      required: false
+      format: "range_or_exact"
+      flag_if_missing: true
+      examples:
+        - "10-50"
+        - "100-500"
+        - "250"
+
+    - field: "company_hq"
+      header: "Company HQ"
+      required: false
+      format: "City, Country"
+      flag_if_missing: true
+
+    - field: "trigger"
+      header: "Trigger"
+      required: true
+      max_length: 200
+
+    - field: "trigger_date"
+      header: "Trigger Date"
+      required: true
+      format: "YYYY-MM-DD"
+
+    - field: "pain_hypothesis"
+      header: "Pain Hypothesis"
+      required: true
+      max_length: 300
+
+    - field: "bu"
+      header: "BU"
+      required: true
+      validation: "one_of_[Bitwage,TeamPay,Mining]"
+
+    - field: "notes"
+      header: "Notes"
+      required: false
+      max_length: 500
+
+  validation_rules:
+    email_format_or_research_needed:
+      - "valid_email@domain.com"
+      - "[Research Needed]"
+
+    company_size_ranges:
+      - "1-10"
+      - "10-50"
+      - "50-100"
+      - "100-500"
+      - "500-1000"
+      - "1000+"
+
+    bu_values:
+      - "Bitwage"
+      - "TeamPay"
+      - "Mining"
+
+  enrichment_gap_flags:
+    missing_email: "[Research Needed]"
+    missing_company_size: "[Unknown]"
+    missing_hq: "[Unknown]"
+
+  export_rules:
+    include_if_missing_email: true
+    include_if_missing_company_size: true
+    include_if_missing_hq: true
+    skip_if_missing_buyer: true
+    skip_if_invalid_trigger: true
+
+# GOOGLE SHEETS FORMAT
+google_sheets_pipeline:
+  active_pipeline_columns:
+    - field: "company"
+      header: "Company"
+      width: 150
+
+    - field: "bu"
+      header: "BU"
+      width: 80
+
+    - field: "trigger"
+      header: "Trigger"
+      width: 200
+
+    - field: "state"
+      header: "State"
+      width: 100
+      validation: "one_of_[New,Contacted,Replied,Meeting,Passed,Closed-Lost,Nurture]"
+
+    - field: "last_touch"
+      header: "Last Touch"
+      width: 100
+      format: "YYYY-MM-DD"
+
+    - field: "channel"
+      header: "Channel"
+      width: 80
+      validation: "one_of_[LinkedIn,Email,Phone,Meeting]"
+
+    - field: "next_action"
+      header: "Next Action"
+      width: 200
+
+    - field: "owner"
+      header: "Owner"
+      width: 100
+
+    - field: "apollo_link"
+      header: "Apollo Link"
+      width: 150
+      format: "url"
+
+    - field: "notes"
+      header: "Notes"
+      width: 300
+
+  dashboard_formulas:
+    new_count: "=COUNTIF(State,\"New\")"
+    contacted_count: "=COUNTIF(State,\"Contacted\")"
+    replied_count: "=COUNTIF(State,\"Replied\")"
+    meeting_count: "=COUNTIF(State,\"Meeting\")"
+    passed_count: "=COUNTIF(State,\"Passed\")"
+    total_active: "=COUNTA(Company:Company)-1"
+    wow_movement: "=[This Week Total]-[Last Week Total]"
+
+  state_definitions:
+    new: "Target added, not yet contacted"
+    contacted: "Initial outreach sent"
+    replied: "Buyer responded"
+    meeting: "Meeting scheduled or completed"
+    passed: "Handed off to AE/partner owner"
+    closed_lost: "No response after 3 follow-ups"
+    nurture: "Future opportunity, not ready now"
+
+# SEQUENCE MESSAGES FORMAT
+sequence_messages:
+  filename_pattern: "{date}-{bu}-messages.md"
+
+  structure:
+    - step: "Day 0 - LinkedIn Connect"
+      format: "markdown"
+      max_length: 300
+
+    - step: "Day 2 - Email Variant A"
+      format: "markdown"
+      max_length: 150_words
+
+    - step: "Day 5 - Email Variant B"
+      format: "markdown"
+      max_length: 150_words
+
+    - step: "Day 10 - Final Follow-up"
+      format: "markdown"
+      max_length: 100_words
+
+  template_structure: |
+    # {BU} Outreach Messages — Week of {date}
+
+    ## Thesis: {thesis_name}
+
+    ---
+
+    ## Target: {company_name}
+    **Buyer**: {buyer_name}, {buyer_title}
+    **Trigger**: {trigger}
+    **Pain Hypothesis**: {pain_hypothesis}
+
+    ### Day 0 - LinkedIn Connect Request
+    ```
+    {linkedin_message}
+    ```
+
+    ### Day 2 - Email Variant A ({variant_type})
+    **Subject**: {email_subject_a}
+    ```
+    {email_body_a}
+    ```
+
+    ### Day 5 - Email Variant B ({variant_type})
+    **Subject**: {email_subject_b}
+    ```
+    {email_body_b}
+    ```
+
+    ### Day 10 - Final Follow-up
+    **Subject**: {followup_subject}
+    ```
+    {followup_body}
+    ```
+
+    ### Notes for Sender
+    - {note_1}
+    - {note_2}
+
+    ---
+
+# PARTNER BRIEF PDF FORMAT
+partner_brief_pdf:
+  filename_pattern: "{partner_name}-brief.pdf"
+  page_size: "letter"
+  margins:
+    top: 1
+    bottom: 1
+    left: 1
+    right: 1
+
+  sections:
+    - name: "Header"
+      content: "Partner logo placeholder + Partner name"
+
+    - name: "Company Overview"
+      max_paragraphs: 1
+      max_words: 150
+
+    - name: "Why They Matter to Us"
+      format: "bullet_list"
+      max_bullets: 3
+
+    - name: "Why We Matter to Them"
+      format: "bullet_list"
+      max_bullets: 3
+
+    - name: "Mutual Value Proposition"
+      max_sentences: 1
+
+    - name: "Key Contact"
+      fields:
+        - name
+        - title
+        - linkedin_url
+
+    - name: "Risks & Considerations"
+      format: "bullet_list"
+      max_bullets: 3
+
+    - name: "Footer"
+      content: "Generated by Growth OS v3 | {date}"
+
+# VALIDATION REPORT FORMAT
+validation_report:
+  filename_pattern: "{date}-validation-report.md"
+
+  structure: |
+    # Validation Report — {date}
+
+    ## Summary
+    - Total targets processed: {total_count}
+    - Targets included: {included_count}
+    - Targets skipped: {skipped_count}
+    - Enrichment gaps flagged: {gaps_count}
+
+    ---
+
+    ## Enrichment Gaps
+
+    {gaps_table}
+
+    ---
+
+    ## Skipped Targets
+
+    {skipped_table}
+
+    ---
+
+    ## Recommendations
+
+    {recommendations_list}
+
+# CHANNEL REPORT FORMATS
+channel_report:
+  slack_heartbeat:
+    filename_pattern: "{date}-slack-heartbeat.md"
+    max_length: 500_characters
+
+  pdf_scoreboard:
+    filename_pattern: "{date}-channel-scoreboard.pdf"
+    page_size: "letter"
+    orientation: "portrait"
+
+  slide_deck:
+    filename_pattern: "{date}-channel-slides.pptx"
+    slide_count: "2-3"
+    template: "templates/channel-slides.template.pptx"

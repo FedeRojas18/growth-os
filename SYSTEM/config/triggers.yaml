@@ -1,0 +1,101 @@
+# Trigger Library for Growth OS v3
+# Defines valid triggers for target qualification
+
+triggers:
+  # HIRING SIGNALS
+  - category: Hiring
+    signal: "Posting roles in LATAM, remote-global payroll, international ops"
+    best_bu: Bitwage
+    age_window_days: 30
+    example: "Company hiring LATAM contractors on LinkedIn"
+    pain_hypothesis_template: "Cross-border payroll friction for growing LATAM team"
+
+  # EXPANSION SIGNALS
+  - category: Expansion
+    signal: "LATAM expansion announcement, new office opening"
+    best_bu: Bitwage
+    age_window_days: 30
+    example: "Fintech opening São Paulo office"
+    pain_hypothesis_template: "Need for local payment infrastructure in new market"
+
+  # STABLECOIN SIGNALS
+  - category: Stablecoin
+    signal: "USDC/USDT integration announcement or implementation"
+    best_bu: Bitwage
+    age_window_days: 30
+    example: "Payment provider adding USDC rails"
+    pain_hypothesis_template: "Seeking stable digital payment alternatives to fiat rails"
+
+  # BITCOIN TREASURY SIGNALS
+  - category: BTC Treasury
+    signal: "Bitcoin purchase announcement, treasury policy change"
+    best_bu: TeamPay
+    age_window_days: 60
+    example: "Company adds $20M BTC to balance sheet"
+    pain_hypothesis_template: "Need to operationalize Bitcoin treasury holdings"
+
+  # EVENT SIGNALS
+  - category: Event
+    signal: "Speaking or sponsoring at Bitcoin/fintech event"
+    best_bu: [TeamPay, Bitwage]
+    age_window_days: 30
+    example: "CEO speaking at LABITCONF"
+    pain_hypothesis_template: "Active in ecosystem, likely evaluating Bitcoin solutions"
+
+  # FUNDING SIGNALS
+  - category: Funding
+    signal: "Raised capital, especially fintech/crypto/LATAM focused"
+    best_bu: [TeamPay, Bitwage]
+    age_window_days: 60
+    example: "LATAM startup raises Series A"
+    pain_hypothesis_template: "Growth capital available for infrastructure investments"
+
+  # PAIN SIGNALS
+  - category: Pain Signal
+    signal: "Public complaints about FX, payment friction, cross-border issues"
+    best_bu: Bitwage
+    age_window_days: 30
+    example: "CFO quoted on cross-border payment friction"
+    pain_hypothesis_template: "Actively experiencing and acknowledging payment pain"
+
+  # PARTNERSHIP SIGNALS
+  - category: Partnership
+    signal: "Ecosystem partnership announcement"
+    best_bu: [Mining, TeamPay]
+    age_window_days: 30
+    example: "Mining operation partners with energy provider"
+    pain_hypothesis_template: "Seeking complementary ecosystem solutions"
+
+  # REGULATORY SIGNALS
+  - category: Regulatory
+    signal: "Regulation enabling crypto payments or stablecoin usage"
+    best_bu: Bitwage
+    age_window_days: 30
+    example: "Brazil stablecoin regulation finalized"
+    pain_hypothesis_template: "Regulatory clarity enables new payment approaches"
+
+  # COMMUNITY SIGNALS
+  - category: Community
+    signal: "Active participation in Bitcoin/fintech communities"
+    best_bu: TeamPay
+    age_window_days: 30
+    example: "Founder active on Bitcoin Twitter"
+    pain_hypothesis_template: "Philosophical alignment with Bitcoin solutions"
+
+# VALIDATION RULES
+validation:
+  required_fields:
+    - category
+    - signal
+    - best_bu
+    - age_window_days
+
+  age_windows:
+    default: 30
+    funding: 60
+    btc_treasury: 60
+
+  bu_values:
+    - Bitwage
+    - TeamPay
+    - Mining

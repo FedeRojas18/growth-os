@@ -1,0 +1,41 @@
+# Target History for Growth OS v3
+# Tracks all targets contacted to prevent duplicates (90-day window)
+
+# FORMAT:
+# - company: "Company Name"
+#   buyer_first_name: "First"
+#   buyer_last_name: "Last"
+#   bu: "Bitwage/TeamPay/Mining"
+#   contact_date: "YYYY-MM-DD"
+#   trigger: "Brief trigger description"
+#   state: "Current state"
+#   owner: "Who owns this target"
+
+targets:
+  # Example entry (remove this before production use):
+  # - company: "Example Corp"
+  #   buyer_first_name: "John"
+  #   buyer_last_name: "Smith"
+  #   bu: "Bitwage"
+  #   contact_date: "2026-01-15"
+  #   trigger: "Hiring LATAM contractors"
+  #   state: "Contacted"
+  #   owner: "Ramiro"
+
+# DEDUPLICATION RULES
+deduplication:
+  window_days: 90
+  match_criteria:
+    - company_name: "case_insensitive_match"
+    - buyer_name: "case_insensitive_match"
+
+  actions:
+    duplicate_found: "skip_target"
+    near_90_days: "flag_for_review"
+    outside_window: "allow_recontact"
+
+# MAINTENANCE
+maintenance:
+  archive_frequency: "quarterly"
+  archive_threshold_days: 90
+  archive_location: "history/archive/"

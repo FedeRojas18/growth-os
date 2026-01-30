@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(xargs:*)",
+      "Read(//Users/frojas/bitcoin-ecosystem-analysis/**)",
+      "Bash(sort:*)"
+    ]
+  }
+}

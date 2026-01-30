@@ -1,0 +1,126 @@
+# Segment Menu for Growth OS v3
+# Pre-vetted targeting segments with high probability of conversion
+
+segments:
+  # BITWAGE-FOCUSED SEGMENTS
+  - name: "LATAM-expanding fintechs"
+    primary_bu: Bitwage
+    typical_buyer: "CFO, VP Finance"
+    why_high_probability: "Direct pain alignment with cross-border payroll"
+    typical_triggers:
+      - Hiring
+      - Expansion
+      - Funding
+    target_company_size: "50-500 employees"
+    priority: high
+
+  - name: "Remote contractors MX/BR/CO/AR"
+    primary_bu: Bitwage
+    typical_buyer: "Head of People, VP Operations"
+    why_high_probability: "Active FX friction for LATAM contractor payments"
+    typical_triggers:
+      - Hiring
+      - Pain Signal
+    target_company_size: "20-200 employees"
+    priority: high
+
+  - name: "Stablecoin payment providers"
+    primary_bu: Bitwage
+    typical_buyer: "Head of Partnerships, VP Product"
+    why_high_probability: "Partnership + customer acquisition opportunity"
+    typical_triggers:
+      - Stablecoin
+      - Partnership
+    target_company_size: "10-100 employees"
+    priority: medium
+
+  # TEAMPAY-FOCUSED SEGMENTS
+  - name: "Bitcoin-native companies"
+    primary_bu: TeamPay
+    typical_buyer: "CFO, Founder"
+    why_high_probability: "BTC card wedge, treasury operations alignment"
+    typical_triggers:
+      - BTC Treasury
+      - Community
+      - Event
+    target_company_size: "5-50 employees"
+    priority: high
+
+  - name: "BTC/stablecoin integration announcements"
+    primary_bu: TeamPay
+    typical_buyer: "CFO, CTO"
+    why_high_probability: "Timing-driven, active crypto adoption signal"
+    typical_triggers:
+      - Stablecoin
+      - BTC Treasury
+      - Regulatory
+    target_company_size: "20-500 employees"
+    priority: high
+
+  - name: "LATAM fintech event attendees"
+    primary_bu: [Bitwage, TeamPay]
+    typical_buyer: "CFO, Founder"
+    why_high_probability: "Warm intro path, ecosystem visibility"
+    typical_triggers:
+      - Event
+      - Community
+    target_company_size: "10-200 employees"
+    priority: medium
+
+  # MINING-FOCUSED SEGMENTS
+  - name: "Mining multi-country payments"
+    primary_bu: [Mining, Bitwage]
+    typical_buyer: "CFO, Operations Director"
+    why_high_probability: "Cross-border payment pain for distributed operations"
+    typical_triggers:
+      - Hiring
+      - Expansion
+      - Partnership
+    target_company_size: "50-500 employees"
+    priority: medium
+
+  # FOUNDATION/NGO SEGMENTS
+  - name: "NGOs / circular economy"
+    primary_bu: Foundation
+    typical_buyer: "Program Director, Executive Director"
+    why_high_probability: "Mission alignment with Bitcoin economic empowerment"
+    typical_triggers:
+      - Event
+      - Community
+      - Partnership
+    target_company_size: "5-100 employees"
+    priority: low
+
+# SEGMENT SELECTION SCORING
+scoring_criteria:
+  signal_density:
+    weight: 0.30
+    description: "Number of trigger-qualified companies in segment"
+    minimum_threshold: 3
+
+  trigger_strength:
+    weight: 0.25
+    description: "Quality and recency of trigger signals"
+
+  bu_priority:
+    weight: 0.20
+    description: "Strategic priority for Bitwage, TeamPay, Mining"
+    priorities:
+      Bitwage: 1.0
+      TeamPay: 1.0
+      Mining: 0.8
+      Foundation: 0.5
+
+  conversion_history:
+    weight: 0.15
+    description: "Historical conversion rates from similar segments"
+
+  research_effort:
+    weight: 0.10
+    description: "Ease of finding qualified targets (lower effort = higher score)"
+
+# SEGMENT VALIDATION RULES
+validation:
+  minimum_signals: 3
+  maximum_target_age_days: 30
+  required_buyer_clarity: true

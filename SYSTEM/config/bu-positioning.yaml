@@ -1,0 +1,189 @@
+# Business Unit Positioning for Growth OS v3
+# Value propositions and messaging frameworks for each BU
+
+business_units:
+  Bitwage:
+    full_name: "Bitwage"
+    tagline: "Global payroll infrastructure for the borderless economy"
+
+    core_value_props:
+      - "Pay remote contractors and employees in 190+ countries"
+      - "Instant settlement via Bitcoin and stablecoin rails"
+      - "Save 3-7% on cross-border payments vs. traditional methods"
+      - "Compliance-first approach with local payment methods"
+      - "No minimum volumes, pay-as-you-go pricing"
+
+    primary_pain_points_addressed:
+      - pain: "High FX fees and slow settlement for LATAM payments"
+        solution: "Bitcoin/stablecoin rails with instant settlement"
+
+      - pain: "Complex multi-country payroll compliance"
+        solution: "Local payment methods with global infrastructure"
+
+      - pain: "Contractor friction with traditional banking"
+        solution: "Crypto-native payment options preferred by contractors"
+
+      - pain: "Unpredictable currency volatility"
+        solution: "Stablecoin settlement eliminates FX risk"
+
+    ideal_buyer_personas:
+      - title: "CFO"
+        pain_focus: "Cost savings, compliance, scalability"
+
+      - title: "VP Finance / Controller"
+        pain_focus: "Operational efficiency, reconciliation, reporting"
+
+      - title: "Head of People / VP HR"
+        pain_focus: "Contractor satisfaction, hiring velocity"
+
+      - title: "VP Operations"
+        pain_focus: "Process efficiency, vendor management"
+
+    proof_points:
+      - "Processing $100M+ in cross-border payments annually"
+      - "Serving 10,000+ businesses across 190 countries"
+      - "Average 65% cost reduction vs. traditional rails"
+      - "Same-day settlement vs. 3-7 day bank transfers"
+
+    competitive_positioning:
+      vs_wise: "Crypto-native rails, instant settlement, lower minimums"
+      vs_deel: "More flexible payment methods, Bitcoin/stablecoin rails"
+      vs_remote: "Cost savings focus, crypto-native infrastructure"
+
+    messaging_frameworks:
+      question_first: "How much are you spending on cross-border payments to LATAM contractors?"
+      observation_first: "I noticed [company] is [trigger] — curious how you're handling cross-border payroll?"
+      direct_first: "We help companies like [company] save 3-7% on LATAM contractor payments using stablecoin rails."
+
+  TeamPay:
+    full_name: "TeamPay (Bitcoin Business Card)"
+    tagline: "Corporate spending meets Bitcoin treasury management"
+
+    core_value_props:
+      - "Spend from Bitcoin treasury without liquidating to fiat"
+      - "Corporate cards with Bitcoin/stablecoin backing"
+      - "Treasury management dashboard and reporting"
+      - "Tax-advantaged spending strategies"
+      - "Enterprise-grade security and controls"
+
+    primary_pain_points_addressed:
+      - pain: "No way to operationalize Bitcoin holdings for daily spend"
+        solution: "Corporate cards backed by BTC treasury"
+
+      - pain: "Tax inefficiencies from constant BTC liquidation"
+        solution: "Strategic spend-down reduces tax burden"
+
+      - pain: "Lack of visibility into corporate crypto spending"
+        solution: "Enterprise dashboard with real-time reporting"
+
+      - pain: "Security concerns with corporate crypto access"
+        solution: "Multi-sig controls and spending limits"
+
+    ideal_buyer_personas:
+      - title: "CFO"
+        pain_focus: "Treasury optimization, tax efficiency, controls"
+
+      - title: "Founder / CEO"
+        pain_focus: "Strategic Bitcoin allocation, operational efficiency"
+
+      - title: "CTO / Head of Engineering"
+        pain_focus: "Security, technical integration, API access"
+
+      - title: "Treasurer"
+        pain_focus: "Treasury management, reporting, compliance"
+
+    proof_points:
+      - "Managing $XXM in corporate Bitcoin treasuries"
+      - "X,XXX corporate cards issued"
+      - "Average XX% reduction in tax burden"
+      - "99.9% uptime, zero security incidents"
+
+    competitive_positioning:
+      vs_fold: "Bitcoin-native, better treasury integration"
+      vs_coinbase_card: "Corporate controls, enterprise features"
+      vs_traditional_amex: "Bitcoin backing, tax advantages"
+
+    messaging_frameworks:
+      question_first: "How are you currently operationalizing your Bitcoin treasury for corporate spend?"
+      observation_first: "Saw [company] added BTC to the balance sheet — how are you thinking about spending vs. holding?"
+      direct_first: "We help Bitcoin companies turn treasury holdings into operational spend without constant liquidation."
+
+  Mining:
+    full_name: "Mining Operations Support"
+    tagline: "Payment infrastructure for distributed mining operations"
+
+    core_value_props:
+      - "Multi-country payroll for distributed mining operations"
+      - "Energy provider and vendor payments in local currencies"
+      - "Equipment procurement and financing support"
+      - "Treasury management for mining revenue"
+
+    primary_pain_points_addressed:
+      - pain: "Complex multi-jurisdiction operations and payments"
+        solution: "Global payment infrastructure for mining ops"
+
+      - pain: "Energy provider payments in multiple countries"
+        solution: "Local payment methods with global coordination"
+
+      - pain: "Equipment procurement across borders"
+        solution: "Cross-border payment rails for vendors"
+
+      - pain: "Managing mining revenue and operational expenses"
+        solution: "Treasury dashboard and payment automation"
+
+    ideal_buyer_personas:
+      - title: "CFO / VP Finance"
+        pain_focus: "Multi-country operations, vendor management"
+
+      - title: "Operations Director"
+        pain_focus: "Energy payments, equipment procurement"
+
+      - title: "Founder / CEO"
+        pain_focus: "Scaling operations, cost efficiency"
+
+    proof_points:
+      - "Supporting XX mining operations across Y countries"
+      - "Processing $XXM in energy payments annually"
+      - "Average X% savings on cross-border vendor payments"
+
+    competitive_positioning:
+      vs_traditional_banks: "Crypto-native, faster settlement, lower fees"
+      vs_generic_payroll: "Mining-specific expertise, multi-country"
+
+    messaging_frameworks:
+      question_first: "How are you managing payments across your distributed mining operations?"
+      observation_first: "Noticed [company] expanding to [country] — curious about your cross-border payment setup?"
+      direct_first: "We help mining operations streamline multi-country payments for energy and vendors."
+
+# CROSS-BU MESSAGING RULES
+messaging_rules:
+  email_max_words: 150
+  linkedin_max_words: 75
+
+  banned_phrases:
+    - "I wanted to reach out"
+    - "Just checking in"
+    - "Circling back"
+    - "Touching base"
+    - "Hope this finds you well"
+    - "Game-changing"
+    - "Revolutionary"
+    - "Synergy"
+    - "Leverage"
+    - "Best in class"
+
+  required_elements:
+    - Specific trigger or pain reference
+    - Clear BU-specific value prop
+    - Low-friction call to action
+    - Professional but conversational tone
+
+  proof_point_rotation:
+    description: "Don't reuse same details across targets in same week"
+    enforce: true
+
+  tone_calibration:
+    CFO: "Data-driven, ROI-focused, concise"
+    Founder: "Strategic, vision-aligned, partnership-oriented"
+    VP_Operations: "Efficiency-focused, process-oriented, practical"
+    Head_of_People: "Employee-centric, cultural fit, ease-of-use"

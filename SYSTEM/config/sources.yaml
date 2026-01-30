@@ -1,0 +1,195 @@
+# Signal Sources for Growth OS v3
+# URLs and scan instructions for signal scanning
+
+# NEWS & MEDIA SOURCES
+news_sources:
+  - name: "TechCrunch"
+    url: "https://techcrunch.com/"
+    categories:
+      - bitcoin
+      - fintech
+      - latam
+      - cryptocurrency
+    scan_frequency: daily
+    relevance_keywords:
+      - funding
+      - expansion
+      - latam
+      - bitcoin
+      - stablecoin
+      - payroll
+      - remittance
+    scan_method: webfetch
+
+  - name: "CoinDesk"
+    url: "https://www.coindesk.com/"
+    categories:
+      - markets
+      - policy
+      - tech
+      - business
+    scan_frequency: daily
+    relevance_keywords:
+      - stablecoin
+      - regulation
+      - institutional
+      - adoption
+      - treasury
+      - corporate
+    scan_method: webfetch
+
+  - name: "The Block"
+    url: "https://www.theblock.co/"
+    categories:
+      - funding
+      - partnerships
+      - infrastructure
+    scan_frequency: daily
+    relevance_keywords:
+      - funding round
+      - partnership
+      - acquisition
+      - integration
+    scan_method: webfetch
+
+  - name: "Bitcoin Magazine"
+    url: "https://bitcoinmagazine.com/"
+    categories:
+      - business
+      - technology
+      - adoption
+    scan_frequency: daily
+    relevance_keywords:
+      - corporate
+      - adoption
+      - treasury
+      - mining
+      - lightning
+    scan_method: webfetch
+
+# SOCIAL & COMMUNITY SOURCES
+social_sources:
+  - name: "Bitcoin Twitter"
+    type: manual_review
+    description: "Monitor key Bitcoin influencers and company accounts"
+    accounts:
+      - "@Bitcoin"
+      - "@aantonop"
+      - "@saifedean"
+      - "@matt_odell"
+      - "@MartyBent"
+      - "@jack"
+      - "@saylor"
+    scan_frequency: daily
+    scan_method: manual
+    note: "No reliable API - requires manual monitoring"
+
+  - name: "LinkedIn Jobs & Posts"
+    url: "https://www.linkedin.com/"
+    focus_areas:
+      - LATAM hiring posts
+      - Expansion announcements
+      - Funding announcements
+      - Event participation
+    scan_frequency: daily
+    scan_method: manual_or_linkedin_skill
+    note: "Use LinkedIn skill if available, otherwise manual"
+
+  - name: "Reddit Bitcoin"
+    subreddits:
+      - r/Bitcoin
+      - r/bitcoinbeginners
+      - r/CryptoCurrency
+    scan_frequency: weekly
+    relevance_keywords:
+      - adoption
+      - corporate
+      - company
+    scan_method: manual
+
+# INDUSTRY SOURCES
+industry_sources:
+  - name: "LATAM Fintech Hub"
+    url: "https://www.latamfintech.co/"
+    scan_frequency: weekly
+    relevance_keywords:
+      - fintech
+      - payments
+      - expansion
+      - funding
+    scan_method: webfetch
+
+  - name: "Mining Industry News"
+    sources:
+      - "Hashr8 Newsletter"
+      - "Mining Disrupt"
+      - "Bitcoin Mining Council updates"
+    scan_frequency: weekly
+    relevance_keywords:
+      - mining
+      - energy
+      - operations
+      - expansion
+    scan_method: manual
+
+  - name: "Stablecoin Integration Announcements"
+    monitored_platforms:
+      - Circle (USDC)
+      - Tether (USDT)
+      - Paxos (USDP)
+    scan_frequency: weekly
+    scan_method: webfetch
+
+# EVENT & CONFERENCE FEEDS
+event_sources:
+  - name: "Bitcoin Conference Calendar"
+    events:
+      - Bitcoin 2026
+      - LABITCONF
+      - Adopting Bitcoin
+      - Bitcoin Amsterdam
+      - Plan B Forum
+    scan_frequency: monthly
+    focus: "Speaker lists, sponsor announcements"
+    scan_method: manual
+
+  - name: "LATAM Fintech Events"
+    events:
+      - LATAM Fintech Summit
+      - Brazil Fintech Forum
+      - Mexico Fintech Summit
+    scan_frequency: monthly
+    focus: "Attendees, speakers, sponsors"
+    scan_method: manual
+
+# SCAN INSTRUCTIONS
+scan_instructions:
+  signal_freshness:
+    default_max_age_days: 7
+    funding_max_age_days: 60
+    regulatory_max_age_days: 30
+
+  signal_quality_filters:
+    must_have_company_name: true
+    must_have_specific_person: false  # Nice to have but not required
+    must_map_to_action: true
+    must_fit_segment: true
+
+  action_mapping:
+    valid_actions:
+      - Thesis Candidate
+      - Trigger Target
+      - Partner Lead
+      - Drop
+    default_if_ambiguous: "Drop"
+
+# FIRECRAWL INTEGRATION (OPTIONAL)
+firecrawl_config:
+  enabled: false  # Set to true when Firecrawl API key configured
+  api_key_env_var: "FIRECRAWL_API_KEY"
+  structured_scraping_targets:
+    - TechCrunch
+    - CoinDesk
+    - The Block
+  crawl_depth: 2
+  output_format: "markdown"
