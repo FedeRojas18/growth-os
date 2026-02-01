@@ -1,18 +1,9 @@
-import { drizzle } from 'drizzle-orm/libsql';
-import { createClient } from '@libsql/client';
 import { activities } from './_lib/db/schema';
+import { getEdgeDb } from './_lib/db/client';
 
 export const config = {
   runtime: 'edge',
 };
-
-function getDb() {
-  const client = createClient({
-    url: process.env.TURSO_DATABASE_URL || 'file:./local.db',
-    authToken: process.env.TURSO_AUTH_TOKEN,
-  });
-  return drizzle(client);
-}
 
 function toISODate(date: Date) {
   return date.toISOString().split('T')[0];
@@ -31,8 +22,8 @@ function lastNDays(n: number): string[] {
 
 export default async function handler() {
   try {
-    const db = getDb();
-    const rows = await db.select().from(activities);
+    const db = getEdgeDb();
+    const rows = db ? await db.select().from(activities) : [];
 
     const today = new Date();
     const start14 = new Date(today);

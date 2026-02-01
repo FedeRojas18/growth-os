@@ -1,27 +1,21 @@
-import { drizzle } from 'drizzle-orm/libsql';
-import { createClient } from '@libsql/client';
 import { activities } from './_lib/db/schema';
 import { eq, and, desc } from 'drizzle-orm';
+import { getEdgeDb } from './_lib/db/client';
 
 export const config = {
   runtime: 'edge',
 };
 
-function getDb() {
-  const client = createClient({
-    url: process.env.TURSO_DATABASE_URL || 'file:./local.db',
-    authToken: process.env.TURSO_AUTH_TOKEN,
-  });
-  return drizzle(client);
-}
-
 export default async function handler(request: Request) {
-  const db = getDb();
+  const db = getEdgeDb();
   const url = new URL(request.url);
   const pathParts = url.pathname.split('/').filter(Boolean);
 
   // Route: POST /api/activities - Create activity
   if (request.method === 'POST') {
+    if (!db) {
+      return Response.json({ error: 'Database not configured' }, { status: 503 });
+    }
     try {
       const body = await request.json();
       const { entityType, entityId, type, content, metadata } = body;
@@ -51,6 +45,9 @@ export default async function handler(request: Request) {
 
   // Route: GET /api/activities?entityType=target&entityId=xxx - Get activities for entity
   if (request.method === 'GET') {
+    if (!db) {
+      return Response.json([]);
+    }
     try {
       const entityType = url.searchParams.get('entityType');
       const entityId = url.searchParams.get('entityId');
@@ -88,6 +85,9 @@ export default async function handler(request: Request) {
 
   // Route: DELETE /api/activities?id=xxx - Delete activity
   if (request.method === 'DELETE') {
+    if (!db) {
+      return Response.json({ error: 'Database not configured' }, { status: 503 });
+    }
     try {
       const id = url.searchParams.get('id');
 

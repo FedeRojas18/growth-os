@@ -1,8 +1,7 @@
-import { drizzle } from 'drizzle-orm/libsql';
-import { createClient } from '@libsql/client';
 import { activities, reminders } from './_lib/db/schema';
 import { fetchMarkdownFromGitHub } from './_lib/github';
 import { parseTableAfterHeader } from './_lib/markdown-parser';
+import { getEdgeDb } from './_lib/db/client';
 
 export const config = {
   runtime: 'edge',
@@ -19,14 +18,6 @@ interface TargetRow {
 interface PartnerRow {
   id: string;
   name: string;
-}
-
-function getDb() {
-  const client = createClient({
-    url: process.env.TURSO_DATABASE_URL || 'file:./local.db',
-    authToken: process.env.TURSO_AUTH_TOKEN,
-  });
-  return drizzle(client);
 }
 
 function slugify(text: string): string {
@@ -149,15 +140,15 @@ async function loadPartners(): Promise<PartnerRow[]> {
 
 export default async function handler() {
   try {
-    const db = getDb();
+    const db = getEdgeDb();
     const now = new Date();
     const todayStr = now.toISOString().split('T')[0];
 
     const [targetRows, partnerRows, activityRows, reminderRows] = await Promise.all([
       loadTargets(),
       loadPartners(),
-      db.select().from(activities),
-      db.select().from(reminders),
+      db ? db.select().from(activities) : Promise.resolve([]),
+      db ? db.select().from(reminders) : Promise.resolve([]),
     ]);
 
     const targetMap = new Map(targetRows.map(t => [t.id, t.company]));

@@ -1,26 +1,20 @@
-import { drizzle } from 'drizzle-orm/libsql';
-import { createClient } from '@libsql/client';
 import { nextActionOverrides } from './_lib/db/schema';
 import { eq, and } from 'drizzle-orm';
+import { getEdgeDb } from './_lib/db/client';
 
 export const config = {
   runtime: 'edge',
 };
 
-function getDb() {
-  const client = createClient({
-    url: process.env.TURSO_DATABASE_URL || 'file:./local.db',
-    authToken: process.env.TURSO_AUTH_TOKEN,
-  });
-  return drizzle(client);
-}
-
 export default async function handler(request: Request) {
-  const db = getDb();
+  const db = getEdgeDb();
   const url = new URL(request.url);
 
   // Route: PATCH /api/next-actions?entityType=target&entityId=xxx - Update next action
   if (request.method === 'PATCH') {
+    if (!db) {
+      return Response.json({ error: 'Database not configured' }, { status: 503 });
+    }
     try {
       const entityType = url.searchParams.get('entityType');
       const entityId = url.searchParams.get('entityId');
@@ -83,6 +77,9 @@ export default async function handler(request: Request) {
 
   // Route: GET /api/next-actions?entityType=target&entityId=xxx - Get next action override
   if (request.method === 'GET') {
+    if (!db) {
+      return Response.json(null);
+    }
     try {
       const entityType = url.searchParams.get('entityType');
       const entityId = url.searchParams.get('entityId');
@@ -118,6 +115,9 @@ export default async function handler(request: Request) {
 
   // Route: DELETE /api/next-actions?entityType=target&entityId=xxx - Delete override (revert to markdown)
   if (request.method === 'DELETE') {
+    if (!db) {
+      return Response.json({ error: 'Database not configured' }, { status: 503 });
+    }
     try {
       const entityType = url.searchParams.get('entityType');
       const entityId = url.searchParams.get('entityId');

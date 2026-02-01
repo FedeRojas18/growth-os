@@ -1,30 +1,24 @@
-import { drizzle } from 'drizzle-orm/libsql';
-import { createClient } from '@libsql/client';
 import { reminders } from './_lib/db/schema';
 import { eq, and, lte, gte, desc } from 'drizzle-orm';
+import { getEdgeDb } from './_lib/db/client';
 
 export const config = {
   runtime: 'edge',
 };
-
-function getDb() {
-  const client = createClient({
-    url: process.env.TURSO_DATABASE_URL || 'file:./local.db',
-    authToken: process.env.TURSO_AUTH_TOKEN,
-  });
-  return drizzle(client);
-}
 
 function getTodayISO(): string {
   return new Date().toISOString().split('T')[0];
 }
 
 export default async function handler(request: Request) {
-  const db = getDb();
+  const db = getEdgeDb();
   const url = new URL(request.url);
 
   // Route: POST /api/reminders - Create reminder
   if (request.method === 'POST') {
+    if (!db) {
+      return Response.json({ error: 'Database not configured' }, { status: 503 });
+    }
     try {
       const body = await request.json();
       const { entityType, entityId, dueDate, note } = body;
@@ -55,6 +49,9 @@ export default async function handler(request: Request) {
   // Route: GET /api/reminders - Get all reminders (optionally filtered)
   // Query params: today=true (only today's), entityType, entityId
   if (request.method === 'GET') {
+    if (!db) {
+      return Response.json([]);
+    }
     try {
       const today = url.searchParams.get('today');
       const entityType = url.searchParams.get('entityType');
@@ -94,6 +91,9 @@ export default async function handler(request: Request) {
 
   // Route: PATCH /api/reminders?id=xxx - Update reminder (mark complete, update note/date)
   if (request.method === 'PATCH') {
+    if (!db) {
+      return Response.json({ error: 'Database not configured' }, { status: 503 });
+    }
     try {
       const id = url.searchParams.get('id');
 
@@ -131,6 +131,9 @@ export default async function handler(request: Request) {
 
   // Route: DELETE /api/reminders?id=xxx - Delete reminder
   if (request.method === 'DELETE') {
+    if (!db) {
+      return Response.json({ error: 'Database not configured' }, { status: 503 });
+    }
     try {
       const id = url.searchParams.get('id');
 

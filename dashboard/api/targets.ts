@@ -1,9 +1,8 @@
-import { drizzle } from 'drizzle-orm/libsql';
-import { createClient } from '@libsql/client';
 import { stateOverrides, nextActionOverrides } from './_lib/db/schema';
 import { eq } from 'drizzle-orm';
 import { fetchMarkdownFromGitHub } from './_lib/github';
 import { parseTableAfterHeader } from './_lib/markdown-parser';
+import { getEdgeDb } from './_lib/db/client';
 
 export const config = {
   runtime: 'edge',
@@ -26,14 +25,6 @@ interface Target {
   daysInState: number;
 }
 
-function getDb() {
-  const client = createClient({
-    url: process.env.TURSO_DATABASE_URL || 'file:./local.db',
-    authToken: process.env.TURSO_AUTH_TOKEN,
-  });
-  return drizzle(client);
-}
-
 function slugify(text: string): string {
   return text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 }
@@ -52,13 +43,13 @@ function calculateDaysAgo(dateStr: string): number {
 
 export default async function handler() {
   try {
-    const db = getDb();
+    const db = getEdgeDb();
 
     // Fetch markdown data and database overrides in parallel
     const [content, dbStateOverrides, dbNextActionOverrides] = await Promise.all([
       fetchMarkdownFromGitHub('KNOWLEDGE/target-pipeline.md'),
-      db.select().from(stateOverrides).where(eq(stateOverrides.entityType, 'target')),
-      db.select().from(nextActionOverrides).where(eq(nextActionOverrides.entityType, 'target')),
+      db ? db.select().from(stateOverrides).where(eq(stateOverrides.entityType, 'target')) : Promise.resolve([]),
+      db ? db.select().from(nextActionOverrides).where(eq(nextActionOverrides.entityType, 'target')) : Promise.resolve([]),
     ]);
 
     // Create lookup maps for overrides

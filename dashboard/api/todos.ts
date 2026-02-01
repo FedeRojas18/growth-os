@@ -1,8 +1,7 @@
-import { drizzle } from 'drizzle-orm/libsql';
-import { createClient } from '@libsql/client';
 import { reminders, nextActionOverrides } from './_lib/db/schema';
 import { fetchMarkdownFromGitHub } from './_lib/github';
 import { parseTableAfterHeader } from './_lib/markdown-parser';
+import { getEdgeDb } from './_lib/db/client';
 
 export const config = {
   runtime: 'edge',
@@ -19,14 +18,6 @@ interface TodoItem {
   text: string;
   isComplete?: boolean;
   sourceId: number;
-}
-
-function getDb() {
-  const client = createClient({
-    url: process.env.TURSO_DATABASE_URL || 'file:./local.db',
-    authToken: process.env.TURSO_AUTH_TOKEN,
-  });
-  return drizzle(client);
 }
 
 function slugify(text: string): string {
@@ -111,10 +102,10 @@ async function buildPartnerMap(): Promise<Map<string, { name: string; tag?: stri
 
 export default async function handler() {
   try {
-    const db = getDb();
+    const db = getEdgeDb();
     const [reminderRows, nextActionRows, targetMap, partnerMap] = await Promise.all([
-      db.select().from(reminders),
-      db.select().from(nextActionOverrides),
+      db ? db.select().from(reminders) : Promise.resolve([]),
+      db ? db.select().from(nextActionOverrides) : Promise.resolve([]),
       buildTargetMap(),
       buildPartnerMap(),
     ]);
