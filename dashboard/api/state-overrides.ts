@@ -3,7 +3,7 @@ import { eq, and } from 'drizzle-orm';
 import { getEdgeDb } from './_lib/db/client.js';
 
 export const config = {
-  runtime: 'edge',
+  runtime: 'nodejs',
 };
 
 function getTodayISO(): string {

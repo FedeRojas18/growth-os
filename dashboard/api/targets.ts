@@ -5,7 +5,7 @@ import { parseTableAfterHeader } from './_lib/markdown-parser.js';
 import { getEdgeDb } from './_lib/db/client.js';
 
 export const config = {
-  runtime: 'edge',
+  runtime: 'nodejs',
 };
 
 type TargetState = 'New' | 'Contacted' | 'Replied' | 'Meeting' | 'Passed' | 'Closed-Lost' | 'Nurture';

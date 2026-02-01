@@ -4,7 +4,7 @@ import { parseTableAfterHeader } from './_lib/markdown-parser.js';
 import { getEdgeDb } from './_lib/db/client.js';
 
 export const config = {
-  runtime: 'edge',
+  runtime: 'nodejs',
 };
 
 interface TodoItem {
