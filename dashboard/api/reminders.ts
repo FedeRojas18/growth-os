@@ -12,7 +12,8 @@ function getTodayISO(): string {
 
 export default async function handler(request: Request) {
   const db = getEdgeDb();
-  const url = new URL(request.url);
+  const baseUrl = `${request.headers.get('x-forwarded-proto') || 'https'}://${request.headers.get('host') || 'localhost'}`;
+  const url = new URL(request.url || '/', baseUrl);
 
   // Route: POST /api/reminders - Create reminder
   if (request.method === 'POST') {

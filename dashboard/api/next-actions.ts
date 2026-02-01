@@ -8,7 +8,8 @@ export const config = {
 
 export default async function handler(request: Request) {
   const db = getEdgeDb();
-  const url = new URL(request.url);
+  const baseUrl = `${request.headers.get('x-forwarded-proto') || 'https'}://${request.headers.get('host') || 'localhost'}`;
+  const url = new URL(request.url || '/', baseUrl);
 
   // Route: PATCH /api/next-actions?entityType=target&entityId=xxx - Update next action
   if (request.method === 'PATCH') {
