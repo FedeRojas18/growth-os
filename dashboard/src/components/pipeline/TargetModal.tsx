@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import type { Target } from '../../types';
-import { Badge, getBuVariant } from '../shared/Badge';
+import { Badge, getBuVariant, getStageVariant } from '../shared/Badge';
 import { ActivityTimeline, type Activity } from '../shared/ActivityTimeline';
 import { AddNoteForm, type ActivityType } from '../shared/AddNoteForm';
 import { NextActionEditor } from '../shared/NextActionEditor';
@@ -185,7 +185,7 @@ export function TargetModal({ target, onClose }: TargetModalProps) {
             <Badge variant={getBuVariant(target.buFit)} dot>
               {target.buFit}
             </Badge>
-            <Badge variant={target.isStale ? 'error' : 'success'} dot>
+            <Badge variant={getStageVariant(target.state)} dot>
               {target.state}
             </Badge>
             {effectiveDueDate && (

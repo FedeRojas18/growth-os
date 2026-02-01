@@ -50,16 +50,16 @@ export function TargetCard({ target, onClick, isDragging: isDraggingProp, isOver
 
 function getCardClass(target: Target, isBeingDragged: boolean, isDragging?: boolean) {
   return `
-    bg-white rounded-xl border p-4 cursor-pointer
-    transition-all duration-200
+    bg-white rounded-xl border border-slate-300 p-4 cursor-pointer
+    transition-all duration-200 hover:shadow-md hover:border-slate-400
     ${isBeingDragged
       ? 'shadow-lg ring-2 ring-indigo-400'
       : 'hover:shadow-md hover:-translate-y-0.5'
     }
     ${isDragging ? 'opacity-40' : ''}
     ${target.isStale
-      ? 'border-l-[3px] border-l-red-400 border-t-gray-200 border-r-gray-200 border-b-gray-200'
-      : 'border-gray-200'
+          ? 'border-l-[3px] border-l-red-400 border-t-gray-200 border-r-gray-200 border-b-gray-200'
+      : ''
     }
   `;
 }
@@ -84,7 +84,7 @@ function renderCardContent(
         </button>
 
         <div className="flex-1 flex items-start justify-between gap-2">
-          <h4 className="font-semibold text-gray-900 text-sm tracking-tight leading-tight">
+          <h4 className="font-semibold text-slate-900 text-sm tracking-tight leading-tight">
             {target.company}
           </h4>
           <Badge variant={getBuVariant(target.buFit)} size="sm">
@@ -94,12 +94,12 @@ function renderCardContent(
       </div>
 
       {/* Trigger */}
-      <p className="text-xs text-gray-500 line-clamp-2 mb-3 leading-relaxed pl-5">
+      <p className="text-xs text-slate-700 line-clamp-2 mb-3 leading-relaxed pl-5">
         {target.trigger}
       </p>
 
       {/* Meta Info */}
-      <div className="flex items-center justify-between text-xs text-gray-400 pl-5">
+      <div className="flex items-center justify-between text-xs text-slate-600 pl-5">
         <span className="flex items-center gap-1.5">
           <Calendar className="w-3 h-3" />
           <span>{target.lastTouch || '—'}</span>
@@ -115,7 +115,7 @@ function renderCardContent(
         <div className="mt-3 pt-3 border-t border-gray-100 pl-5">
           <div className="flex items-start gap-2">
             <ArrowRight className="w-3 h-3 text-indigo-500 mt-0.5 flex-shrink-0" />
-            <p className="text-xs text-gray-600 line-clamp-2 leading-relaxed">
+            <p className="text-xs text-slate-600 line-clamp-2 leading-relaxed">
               {target.nextAction}
             </p>
           </div>

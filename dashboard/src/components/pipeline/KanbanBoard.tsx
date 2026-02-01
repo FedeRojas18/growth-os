@@ -12,6 +12,7 @@ import {
   MeasuringStrategy,
   type CollisionDetection,
   type DragStartEvent,
+  type DragOverEvent,
   type DragEndEvent,
 } from '@dnd-kit/core';
 import { sortableKeyboardCoordinates } from '@dnd-kit/sortable';
@@ -79,6 +80,7 @@ export function KanbanBoard({ targets, onTargetStateChange }: KanbanBoardProps) 
   const [suggestionText, setSuggestionText] = useState('');
   const [suggestionDueDate, setSuggestionDueDate] = useState('');
   const [createReminder, setCreateReminder] = useState(true);
+  const dragSourceRef = useRef<{ id: string; state: TargetState } | null>(null);
 
   // Only sync from props when the incoming data actually changes
   const targetsSignature = useMemo(
@@ -123,8 +125,42 @@ export function KanbanBoard({ targets, onTargetStateChange }: KanbanBoardProps) 
   const buOptions = ['all', ...new Set(localTargets.map(t => t.buFit))];
 
   const handleDragStart = useCallback((event: DragStartEvent) => {
-    setActiveId(event.active.id as string);
-  }, []);
+    const targetId = event.active.id as string;
+    const target = localTargets.find(t => t.id === targetId);
+    if (target) {
+      dragSourceRef.current = { id: targetId, state: target.state };
+    }
+    setActiveId(targetId);
+  }, [localTargets]);
+
+  const handleDragOver = useCallback((event: DragOverEvent) => {
+    const { active, over } = event;
+    if (!over) return;
+
+    const targetId = active.id as string;
+    const overId = over.id as string;
+    let newState: TargetState | undefined;
+    const overContainer = over.data?.current?.sortable?.containerId as TargetState | undefined;
+
+    if (overContainer && KANBAN_STATES.includes(overContainer)) {
+      newState = overContainer;
+    } else if (KANBAN_STATES.includes(overId as TargetState)) {
+      newState = overId as TargetState;
+    } else {
+      const overTarget = localTargets.find(t => t.id === overId);
+      newState = overTarget?.state;
+    }
+
+    if (!newState) return;
+
+    setLocalTargets(prev =>
+      prev.map(t =>
+        t.id === targetId && t.state !== newState
+          ? { ...t, state: newState, lastTouch: new Date().toISOString().split('T')[0] }
+          : t
+      )
+    );
+  }, [localTargets]);
 
   const handleDragEnd = useCallback(async (event: DragEndEvent) => {
     const { active, over } = event;
@@ -147,9 +183,17 @@ export function KanbanBoard({ targets, onTargetStateChange }: KanbanBoardProps) 
     }
     const target = localTargets.find(t => t.id === targetId);
 
-    if (!target || !newState || target.state === newState) return;
+    if (!target || !newState) return;
 
-    const oldState = target.state;
+    const sourceState = dragSourceRef.current?.state || target.state;
+    console.log('DROP', { source: sourceState, destination: newState, draggableId: targetId });
+
+    if (sourceState === newState) {
+      dragSourceRef.current = null;
+      return;
+    }
+
+    const oldState = sourceState;
 
     // Optimistically update local state
     setLocalTargets(prev =>
@@ -168,11 +212,12 @@ export function KanbanBoard({ targets, onTargetStateChange }: KanbanBoardProps) 
       console.error('Error updating target state:', error);
       // Revert on error
       setLocalTargets(prev =>
-        prev.map(t =>
-          t.id === targetId ? { ...t, state: oldState } : t
-        )
-      );
+          prev.map(t =>
+            t.id === targetId ? { ...t, state: oldState } : t
+          )
+        );
     }
+    dragSourceRef.current = null;
 
     const rule = SUGGESTED_ACTIONS[newState];
     if (rule && !isSuppressed(targetId, oldState, newState)) {
@@ -193,6 +238,15 @@ export function KanbanBoard({ targets, onTargetStateChange }: KanbanBoardProps) 
 
   const handleDragCancel = useCallback(() => {
     setActiveId(null);
+    const source = dragSourceRef.current;
+    if (source) {
+      setLocalTargets(prev =>
+        prev.map(t =>
+          t.id === source.id ? { ...t, state: source.state } : t
+        )
+      );
+    }
+    dragSourceRef.current = null;
   }, []);
 
   const activeTarget = activeId
@@ -216,6 +270,7 @@ export function KanbanBoard({ targets, onTargetStateChange }: KanbanBoardProps) 
       collisionDetection={collisionDetection}
       measuring={{ droppable: { strategy: MeasuringStrategy.Always } }}
       onDragStart={handleDragStart}
+      onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}
       onDragCancel={handleDragCancel}
     >

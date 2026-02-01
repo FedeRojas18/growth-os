@@ -50,13 +50,13 @@ const typeLabels = {
 };
 
 const stateStyles: Record<string, { badge: string; icon: string }> = {
-  New: { badge: 'bg-slate-100 text-slate-700', icon: 'bg-slate-100 text-slate-600' },
-  Contacted: { badge: 'bg-blue-100 text-blue-700', icon: 'bg-blue-100 text-blue-600' },
-  Replied: { badge: 'bg-amber-100 text-amber-700', icon: 'bg-amber-100 text-amber-600' },
-  Meeting: { badge: 'bg-orange-100 text-orange-700', icon: 'bg-orange-100 text-orange-600' },
-  Passed: { badge: 'bg-emerald-100 text-emerald-700', icon: 'bg-emerald-100 text-emerald-600' },
-  'Closed-Lost': { badge: 'bg-red-100 text-red-700', icon: 'bg-red-100 text-red-600' },
-  Nurture: { badge: 'bg-violet-100 text-violet-700', icon: 'bg-violet-100 text-violet-600' },
+  New: { badge: 'bg-blue-200 text-blue-800 ring-1 ring-blue-300 ring-inset', icon: 'bg-blue-200 text-blue-700' },
+  Contacted: { badge: 'bg-indigo-200 text-indigo-800 ring-1 ring-indigo-300 ring-inset', icon: 'bg-indigo-200 text-indigo-700' },
+  Replied: { badge: 'bg-amber-200 text-amber-900 ring-1 ring-amber-300 ring-inset', icon: 'bg-amber-200 text-amber-800' },
+  Meeting: { badge: 'bg-orange-200 text-orange-900 ring-1 ring-orange-300 ring-inset', icon: 'bg-orange-200 text-orange-800' },
+  Passed: { badge: 'bg-emerald-200 text-emerald-900 ring-1 ring-emerald-300 ring-inset', icon: 'bg-emerald-200 text-emerald-800' },
+  'Closed-Lost': { badge: 'bg-red-200 text-red-900 ring-1 ring-red-300 ring-inset', icon: 'bg-red-200 text-red-800' },
+  Nurture: { badge: 'bg-violet-200 text-violet-900 ring-1 ring-violet-300 ring-inset', icon: 'bg-violet-200 text-violet-800' },
 };
 
 export function ActivityTimeline({ activities, onDelete, loading }: ActivityTimelineProps) {
