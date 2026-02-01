@@ -1,8 +1,10 @@
+import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { stateOverrides, nextActionOverrides } from './_lib/db/schema.js';
 import { eq } from 'drizzle-orm';
 import { fetchMarkdownFromGitHub } from './_lib/github.js';
 import { parseTableAfterHeader } from './_lib/markdown-parser.js';
 import { getEdgeDb } from './_lib/db/client.js';
+import { requireTursoEnv } from './_lib/env.js';
 
 export const config = {
   runtime: 'nodejs',
@@ -41,15 +43,21 @@ function calculateDaysAgo(dateStr: string): number {
   }
 }
 
-export default async function handler() {
+export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
-    const db = getEdgeDb();
+    const env = requireTursoEnv(res);
+    if (!env.ok) return;
+    const db = getEdgeDb(env.url, env.token);
+    if (!db) {
+      res.status(503).json({ error: 'TURSO env missing' });
+      return;
+    }
 
     // Fetch markdown data and database overrides in parallel
     const [content, dbStateOverrides, dbNextActionOverrides] = await Promise.all([
       fetchMarkdownFromGitHub('KNOWLEDGE/target-pipeline.md'),
-      db ? db.select().from(stateOverrides).where(eq(stateOverrides.entityType, 'target')) : Promise.resolve([]),
-      db ? db.select().from(nextActionOverrides).where(eq(nextActionOverrides.entityType, 'target')) : Promise.resolve([]),
+      db.select().from(stateOverrides).where(eq(stateOverrides.entityType, 'target')),
+      db.select().from(nextActionOverrides).where(eq(nextActionOverrides.entityType, 'target')),
     ]);
 
     // Create lookup maps for overrides
@@ -111,18 +119,17 @@ export default async function handler() {
       if (target.isStale) staleCount++;
     }
 
-    return Response.json({
+    res.status(200).json({
       targets,
       summary: { byState, totalActive: targets.length, staleCount },
       closedLost: [],
       nurture: [],
       lastUpdated: new Date().toISOString()
     });
+    return;
   } catch (error) {
     console.error('Error parsing target pipeline:', error);
-    return Response.json(
-      { error: 'Failed to parse target pipeline' },
-      { status: 500 }
-    );
+    res.status(500).json({ error: 'Failed to parse target pipeline' });
+    return;
   }
 }

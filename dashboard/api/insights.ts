@@ -1,5 +1,7 @@
+import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { activities } from './_lib/db/schema.js';
 import { getEdgeDb } from './_lib/db/client.js';
+import { requireTursoEnv } from './_lib/env.js';
 
 export const config = {
   runtime: 'nodejs',
@@ -20,10 +22,16 @@ function lastNDays(n: number): string[] {
   return days;
 }
 
-export default async function handler() {
+export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
-    const db = getEdgeDb();
-    const rows = db ? await db.select().from(activities) : [];
+    const env = requireTursoEnv(res);
+    if (!env.ok) return;
+    const db = getEdgeDb(env.url, env.token);
+    if (!db) {
+      res.status(503).json({ error: 'TURSO env missing' });
+      return;
+    }
+    const rows = await db.select().from(activities);
 
     const today = new Date();
     const start14 = new Date(today);
@@ -82,14 +90,16 @@ export default async function handler() {
       count,
     }));
 
-    return Response.json({
+    res.status(200).json({
       touchesByDay,
       activityByTarget,
       stateChanges,
       lastUpdated: new Date().toISOString(),
     });
+    return;
   } catch (error) {
     console.error('Error building insights:', error);
-    return Response.json({ error: 'Failed to build insights' }, { status: 500 });
+    res.status(500).json({ error: 'Failed to build insights' });
+    return;
   }
 }

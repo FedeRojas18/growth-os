@@ -1,7 +1,9 @@
+import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { reminders, nextActionOverrides } from './_lib/db/schema.js';
 import { fetchMarkdownFromGitHub } from './_lib/github.js';
 import { parseTableAfterHeader } from './_lib/markdown-parser.js';
 import { getEdgeDb } from './_lib/db/client.js';
+import { requireTursoEnv } from './_lib/env.js';
 
 export const config = {
   runtime: 'nodejs',
@@ -100,12 +102,18 @@ async function buildPartnerMap(): Promise<Map<string, { name: string; tag?: stri
   return map;
 }
 
-export default async function handler() {
+export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
-    const db = getEdgeDb();
+    const env = requireTursoEnv(res);
+    if (!env.ok) return;
+    const db = getEdgeDb(env.url, env.token);
+    if (!db) {
+      res.status(503).json({ error: 'TURSO env missing' });
+      return;
+    }
     const [reminderRows, nextActionRows, targetMap, partnerMap] = await Promise.all([
-      db ? db.select().from(reminders) : Promise.resolve([]),
-      db ? db.select().from(nextActionOverrides) : Promise.resolve([]),
+      db.select().from(reminders),
+      db.select().from(nextActionOverrides),
       buildTargetMap(),
       buildPartnerMap(),
     ]);
@@ -172,12 +180,14 @@ export default async function handler() {
       });
     }
 
-    return Response.json({
+    res.status(200).json({
       items,
       lastUpdated: new Date().toISOString(),
     });
+    return;
   } catch (error) {
     console.error('Error building todos:', error);
-    return Response.json({ error: 'Failed to build todos' }, { status: 500 });
+    res.status(500).json({ error: 'Failed to build todos' });
+    return;
   }
 }

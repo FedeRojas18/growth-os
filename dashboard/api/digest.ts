@@ -1,7 +1,9 @@
+import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { activities, reminders } from './_lib/db/schema.js';
 import { fetchMarkdownFromGitHub } from './_lib/github.js';
 import { parseTableAfterHeader } from './_lib/markdown-parser.js';
 import { getEdgeDb } from './_lib/db/client.js';
+import { requireTursoEnv } from './_lib/env.js';
 
 export const config = {
   runtime: 'nodejs',
@@ -138,17 +140,23 @@ async function loadPartners(): Promise<PartnerRow[]> {
   return rows;
 }
 
-export default async function handler() {
+export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
-    const db = getEdgeDb();
+    const env = requireTursoEnv(res);
+    if (!env.ok) return;
+    const db = getEdgeDb(env.url, env.token);
+    if (!db) {
+      res.status(503).json({ error: 'TURSO env missing' });
+      return;
+    }
     const now = new Date();
     const todayStr = now.toISOString().split('T')[0];
 
     const [targetRows, partnerRows, activityRows, reminderRows] = await Promise.all([
       loadTargets(),
       loadPartners(),
-      db ? db.select().from(activities) : Promise.resolve([]),
-      db ? db.select().from(reminders) : Promise.resolve([]),
+      db.select().from(activities),
+      db.select().from(reminders),
     ]);
 
     const targetMap = new Map<string, string>(targetRows.map(t => [t.id, t.company] as [string, string]));
@@ -248,9 +256,11 @@ export default async function handler() {
         : ['- No urgent priorities']),
     ].join('\n');
 
-    return Response.json({ markdown: digest });
+    res.status(200).json({ markdown: digest });
+    return;
   } catch (error) {
     console.error('Error generating digest:', error);
-    return Response.json({ error: 'Failed to generate digest' }, { status: 500 });
+    res.status(500).json({ error: 'Failed to generate digest' });
+    return;
   }
 }

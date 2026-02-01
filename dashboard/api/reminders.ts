@@ -1,6 +1,9 @@
+import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { reminders } from './_lib/db/schema.js';
 import { eq, and, lte, gte, desc } from 'drizzle-orm';
 import { getEdgeDb } from './_lib/db/client.js';
+import { getRequestUrl } from './_lib/request-url.js';
+import { requireTursoEnv } from './_lib/env.js';
 
 export const config = {
   runtime: 'nodejs',
@@ -10,25 +13,25 @@ function getTodayISO(): string {
   return new Date().toISOString().split('T')[0];
 }
 
-export default async function handler(request: Request) {
-  const db = getEdgeDb();
-  const baseUrl = `${request.headers.get('x-forwarded-proto') || 'https'}://${request.headers.get('host') || 'localhost'}`;
-  const url = new URL(request.url || '/', baseUrl);
+export default async function handler(req: VercelRequest, res: VercelResponse) {
+  const env = requireTursoEnv(res);
+  if (!env.ok) return;
+  const db = getEdgeDb(env.url, env.token);
+  if (!db) {
+    res.status(503).json({ error: 'TURSO env missing' });
+    return;
+  }
+  const url = getRequestUrl(req);
 
   // Route: POST /api/reminders - Create reminder
-  if (request.method === 'POST') {
-    if (!db) {
-      return Response.json({ error: 'Database not configured' }, { status: 503 });
-    }
+  if (req.method === 'POST') {
     try {
-      const body = await request.json();
+      const body = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || {});
       const { entityType, entityId, dueDate, note } = body;
 
       if (!entityType || !entityId || !dueDate || !note) {
-        return Response.json(
-          { error: 'Missing required fields: entityType, entityId, dueDate, note' },
-          { status: 400 }
-        );
+        res.status(400).json({ error: 'Missing required fields: entityType, entityId, dueDate, note' });
+        return;
       }
 
       const result = await db.insert(reminders).values({
@@ -40,19 +43,18 @@ export default async function handler(request: Request) {
         createdAt: new Date(),
       }).returning();
 
-      return Response.json(result[0], { status: 201 });
+      res.status(201).json(result[0]);
+      return;
     } catch (error) {
       console.error('Error creating reminder:', error);
-      return Response.json({ error: 'Failed to create reminder' }, { status: 500 });
+      res.status(500).json({ error: 'Failed to create reminder' });
+      return;
     }
   }
 
   // Route: GET /api/reminders - Get all reminders (optionally filtered)
   // Query params: today=true (only today's), entityType, entityId
-  if (request.method === 'GET') {
-    if (!db) {
-      return Response.json([]);
-    }
+  if (req.method === 'GET') {
     try {
       const today = url.searchParams.get('today');
       const entityType = url.searchParams.get('entityType');
@@ -83,26 +85,27 @@ export default async function handler(request: Request) {
         ? await query.where(and(...conditions)).orderBy(desc(reminders.dueDate))
         : await query.orderBy(desc(reminders.dueDate));
 
-      return Response.json(results);
+      res.status(200).json(results);
+      return;
     } catch (error) {
       console.error('Error fetching reminders:', error);
-      return Response.json({ error: 'Failed to fetch reminders' }, { status: 500 });
+      res.status(500).json({ error: 'Failed to fetch reminders' });
+      return;
     }
   }
 
   // Route: PATCH /api/reminders?id=xxx - Update reminder (mark complete, update note/date)
-  if (request.method === 'PATCH') {
-    if (!db) {
-      return Response.json({ error: 'Database not configured' }, { status: 503 });
-    }
+  if (req.method === 'PATCH') {
     try {
-      const id = url.searchParams.get('id');
+      const pathParts = url.pathname.split('/').filter(Boolean);
+      const id = url.searchParams.get('id') || pathParts[2];
 
       if (!id) {
-        return Response.json({ error: 'Missing required param: id' }, { status: 400 });
+        res.status(400).json({ error: 'Missing required param: id' });
+        return;
       }
 
-      const body = await request.json();
+      const body = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || {});
       const updates: Partial<{ dueDate: string; note: string; isComplete: boolean }> = {};
 
       if (body.dueDate !== undefined) updates.dueDate = body.dueDate;
@@ -110,7 +113,8 @@ export default async function handler(request: Request) {
       if (body.isComplete !== undefined) updates.isComplete = body.isComplete;
 
       if (Object.keys(updates).length === 0) {
-        return Response.json({ error: 'No fields to update' }, { status: 400 });
+        res.status(400).json({ error: 'No fields to update' });
+        return;
       }
 
       const result = await db
@@ -120,36 +124,40 @@ export default async function handler(request: Request) {
         .returning();
 
       if (result.length === 0) {
-        return Response.json({ error: 'Reminder not found' }, { status: 404 });
+        res.status(404).json({ error: 'Reminder not found' });
+        return;
       }
 
-      return Response.json(result[0]);
+      res.status(200).json(result[0]);
+      return;
     } catch (error) {
       console.error('Error updating reminder:', error);
-      return Response.json({ error: 'Failed to update reminder' }, { status: 500 });
+      res.status(500).json({ error: 'Failed to update reminder' });
+      return;
     }
   }
 
   // Route: DELETE /api/reminders?id=xxx - Delete reminder
-  if (request.method === 'DELETE') {
-    if (!db) {
-      return Response.json({ error: 'Database not configured' }, { status: 503 });
-    }
+  if (req.method === 'DELETE') {
     try {
-      const id = url.searchParams.get('id');
+      const pathParts = url.pathname.split('/').filter(Boolean);
+      const id = url.searchParams.get('id') || pathParts[2];
 
       if (!id) {
-        return Response.json({ error: 'Missing required param: id' }, { status: 400 });
+        res.status(400).json({ error: 'Missing required param: id' });
+        return;
       }
 
       await db.delete(reminders).where(eq(reminders.id, parseInt(id, 10)));
 
-      return Response.json({ success: true });
+      res.status(200).json({ success: true });
+      return;
     } catch (error) {
       console.error('Error deleting reminder:', error);
-      return Response.json({ error: 'Failed to delete reminder' }, { status: 500 });
+      res.status(500).json({ error: 'Failed to delete reminder' });
+      return;
     }
   }
 
-  return Response.json({ error: 'Method not allowed' }, { status: 405 });
+  res.status(405).json({ error: 'Method not allowed' });
 }

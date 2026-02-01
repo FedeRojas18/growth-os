@@ -1,37 +1,41 @@
+import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { nextActionOverrides } from './_lib/db/schema.js';
 import { eq, and } from 'drizzle-orm';
 import { getEdgeDb } from './_lib/db/client.js';
+import { getRequestUrl } from './_lib/request-url.js';
+import { requireTursoEnv } from './_lib/env.js';
 
 export const config = {
   runtime: 'nodejs',
 };
 
-export default async function handler(request: Request) {
-  const db = getEdgeDb();
-  const baseUrl = `${request.headers.get('x-forwarded-proto') || 'https'}://${request.headers.get('host') || 'localhost'}`;
-  const url = new URL(request.url || '/', baseUrl);
+export default async function handler(req: VercelRequest, res: VercelResponse) {
+  const env = requireTursoEnv(res);
+  if (!env.ok) return;
+  const db = getEdgeDb(env.url, env.token);
+  if (!db) {
+    res.status(503).json({ error: 'TURSO env missing' });
+    return;
+  }
+  const url = getRequestUrl(req);
 
   // Route: PATCH /api/next-actions?entityType=target&entityId=xxx - Update next action
-  if (request.method === 'PATCH') {
-    if (!db) {
-      return Response.json({ error: 'Database not configured' }, { status: 503 });
-    }
+  if (req.method === 'PATCH') {
     try {
       const entityType = url.searchParams.get('entityType');
       const entityId = url.searchParams.get('entityId');
 
       if (!entityType || !entityId) {
-        return Response.json(
-          { error: 'Missing required params: entityType, entityId' },
-          { status: 400 }
-        );
+        res.status(400).json({ error: 'Missing required params: entityType, entityId' });
+        return;
       }
 
-      const body = await request.json();
+      const body = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || {});
       const { nextAction, dueDate } = body;
 
       if (!nextAction) {
-        return Response.json({ error: 'Missing required field: nextAction' }, { status: 400 });
+        res.status(400).json({ error: 'Missing required field: nextAction' });
+        return;
       }
 
       // Check if override exists
@@ -69,27 +73,24 @@ export default async function handler(request: Request) {
         }).returning();
       }
 
-      return Response.json(result[0]);
+      res.status(200).json(result[0]);
+      return;
     } catch (error) {
       console.error('Error updating next action:', error);
-      return Response.json({ error: 'Failed to update next action' }, { status: 500 });
+      res.status(500).json({ error: 'Failed to update next action' });
+      return;
     }
   }
 
   // Route: GET /api/next-actions?entityType=target&entityId=xxx - Get next action override
-  if (request.method === 'GET') {
-    if (!db) {
-      return Response.json(null);
-    }
+  if (req.method === 'GET') {
     try {
       const entityType = url.searchParams.get('entityType');
       const entityId = url.searchParams.get('entityId');
 
       if (!entityType || !entityId) {
-        return Response.json(
-          { error: 'Missing required params: entityType, entityId' },
-          { status: 400 }
-        );
+        res.status(400).json({ error: 'Missing required params: entityType, entityId' });
+        return;
       }
 
       const result = await db
@@ -104,30 +105,28 @@ export default async function handler(request: Request) {
         .limit(1);
 
       if (result.length === 0) {
-        return Response.json(null);
+        res.status(200).json(null);
+        return;
       }
 
-      return Response.json(result[0]);
+      res.status(200).json(result[0]);
+      return;
     } catch (error) {
       console.error('Error fetching next action:', error);
-      return Response.json({ error: 'Failed to fetch next action' }, { status: 500 });
+      res.status(500).json({ error: 'Failed to fetch next action' });
+      return;
     }
   }
 
   // Route: DELETE /api/next-actions?entityType=target&entityId=xxx - Delete override (revert to markdown)
-  if (request.method === 'DELETE') {
-    if (!db) {
-      return Response.json({ error: 'Database not configured' }, { status: 503 });
-    }
+  if (req.method === 'DELETE') {
     try {
       const entityType = url.searchParams.get('entityType');
       const entityId = url.searchParams.get('entityId');
 
       if (!entityType || !entityId) {
-        return Response.json(
-          { error: 'Missing required params: entityType, entityId' },
-          { status: 400 }
-        );
+        res.status(400).json({ error: 'Missing required params: entityType, entityId' });
+        return;
       }
 
       await db
@@ -139,12 +138,14 @@ export default async function handler(request: Request) {
           )
         );
 
-      return Response.json({ success: true });
+      res.status(200).json({ success: true });
+      return;
     } catch (error) {
       console.error('Error deleting next action override:', error);
-      return Response.json({ error: 'Failed to delete next action override' }, { status: 500 });
+      res.status(500).json({ error: 'Failed to delete next action override' });
+      return;
     }
   }
 
-  return Response.json({ error: 'Method not allowed' }, { status: 405 });
+  res.status(405).json({ error: 'Method not allowed' });
 }

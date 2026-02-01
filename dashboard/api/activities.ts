@@ -1,31 +1,34 @@
+import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { activities } from './_lib/db/schema.js';
 import { eq, and, desc } from 'drizzle-orm';
 import { getEdgeDb } from './_lib/db/client.js';
+import { getRequestUrl } from './_lib/request-url.js';
+import { requireTursoEnv } from './_lib/env.js';
 
 export const config = {
   runtime: 'nodejs',
 };
 
-export default async function handler(request: Request) {
-  const db = getEdgeDb();
-  const baseUrl = `${request.headers.get('x-forwarded-proto') || 'https'}://${request.headers.get('host') || 'localhost'}`;
-  const url = new URL(request.url || '/', baseUrl);
+export default async function handler(req: VercelRequest, res: VercelResponse) {
+  const env = requireTursoEnv(res);
+  if (!env.ok) return;
+  const db = getEdgeDb(env.url, env.token);
+  if (!db) {
+    res.status(503).json({ error: 'TURSO env missing' });
+    return;
+  }
+  const url = getRequestUrl(req);
   const pathParts = url.pathname.split('/').filter(Boolean);
 
   // Route: POST /api/activities - Create activity
-  if (request.method === 'POST') {
-    if (!db) {
-      return Response.json({ error: 'Database not configured' }, { status: 503 });
-    }
+  if (req.method === 'POST') {
     try {
-      const body = await request.json();
+      const body = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || {});
       const { entityType, entityId, type, content, metadata } = body;
 
       if (!entityType || !entityId || !type || !content) {
-        return Response.json(
-          { error: 'Missing required fields: entityType, entityId, type, content' },
-          { status: 400 }
-        );
+        res.status(400).json({ error: 'Missing required fields: entityType, entityId, type, content' });
+        return;
       }
 
       const result = await db.insert(activities).values({
@@ -37,27 +40,24 @@ export default async function handler(request: Request) {
         createdAt: new Date(),
       }).returning();
 
-      return Response.json(result[0], { status: 201 });
+      res.status(201).json(result[0]);
+      return;
     } catch (error) {
       console.error('Error creating activity:', error);
-      return Response.json({ error: 'Failed to create activity' }, { status: 500 });
+      res.status(500).json({ error: 'Failed to create activity' });
+      return;
     }
   }
 
   // Route: GET /api/activities?entityType=target&entityId=xxx - Get activities for entity
-  if (request.method === 'GET') {
-    if (!db) {
-      return Response.json([]);
-    }
+  if (req.method === 'GET') {
     try {
       const entityType = url.searchParams.get('entityType');
       const entityId = url.searchParams.get('entityId');
 
       if (!entityType || !entityId) {
-        return Response.json(
-          { error: 'Missing required params: entityType, entityId' },
-          { status: 400 }
-        );
+        res.status(400).json({ error: 'Missing required params: entityType, entityId' });
+        return;
       }
 
       const results = await db
@@ -77,33 +77,35 @@ export default async function handler(request: Request) {
         metadata: activity.metadata ? JSON.parse(activity.metadata) : null,
       }));
 
-      return Response.json(parsed);
+      res.status(200).json(parsed);
+      return;
     } catch (error) {
       console.error('Error fetching activities:', error);
-      return Response.json({ error: 'Failed to fetch activities' }, { status: 500 });
+      res.status(500).json({ error: 'Failed to fetch activities' });
+      return;
     }
   }
 
   // Route: DELETE /api/activities?id=xxx - Delete activity
-  if (request.method === 'DELETE') {
-    if (!db) {
-      return Response.json({ error: 'Database not configured' }, { status: 503 });
-    }
+  if (req.method === 'DELETE') {
     try {
-      const id = url.searchParams.get('id');
+      const id = url.searchParams.get('id') || pathParts[2];
 
       if (!id) {
-        return Response.json({ error: 'Missing required param: id' }, { status: 400 });
+        res.status(400).json({ error: 'Missing required param: id' });
+        return;
       }
 
       await db.delete(activities).where(eq(activities.id, parseInt(id, 10)));
 
-      return Response.json({ success: true });
+      res.status(200).json({ success: true });
+      return;
     } catch (error) {
       console.error('Error deleting activity:', error);
-      return Response.json({ error: 'Failed to delete activity' }, { status: 500 });
+      res.status(500).json({ error: 'Failed to delete activity' });
+      return;
     }
   }
 
-  return Response.json({ error: 'Method not allowed' }, { status: 405 });
+  res.status(405).json({ error: 'Method not allowed' });
 }
