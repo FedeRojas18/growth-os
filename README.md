@@ -4,7 +4,7 @@ Growth OS is Paystand's operating system for turning Bitcoin ecosystem signals i
 
 This README focuses on running the dashboard locally and understanding how the Vercel deployment works.
 
-## Getting Started (New Collaborator)
+## Getting Started (New Collaborator- Dessy)
 
 ### 1) Get the code
 **Option A — Git clone**
