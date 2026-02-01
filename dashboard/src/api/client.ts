@@ -7,7 +7,9 @@ const API_BASE = '/api';
 async function fetchJson<T>(url: string): Promise<T> {
   const response = await fetch(`${API_BASE}${url}`);
   if (!response.ok) {
-    throw new Error(`API error: ${response.statusText}`);
+    const error: Error & { status?: number } = new Error(`API error: ${response.statusText}`);
+    error.status = response.status;
+    throw error;
   }
   return response.json();
 }
@@ -19,7 +21,9 @@ async function postJson<T>(url: string, body: unknown): Promise<T> {
     body: JSON.stringify(body),
   });
   if (!response.ok) {
-    throw new Error(`API error: ${response.statusText}`);
+    const error: Error & { status?: number } = new Error(`API error: ${response.statusText}`);
+    error.status = response.status;
+    throw error;
   }
   return response.json();
 }
@@ -31,7 +35,9 @@ async function patchJson<T>(url: string, body: unknown): Promise<T> {
     body: JSON.stringify(body),
   });
   if (!response.ok) {
-    throw new Error(`API error: ${response.statusText}`);
+    const error: Error & { status?: number } = new Error(`API error: ${response.statusText}`);
+    error.status = response.status;
+    throw error;
   }
   return response.json();
 }
@@ -39,7 +45,9 @@ async function patchJson<T>(url: string, body: unknown): Promise<T> {
 async function deleteRequest(url: string): Promise<void> {
   const response = await fetch(`${API_BASE}${url}`, { method: 'DELETE' });
   if (!response.ok) {
-    throw new Error(`API error: ${response.statusText}`);
+    const error: Error & { status?: number } = new Error(`API error: ${response.statusText}`);
+    error.status = response.status;
+    throw error;
   }
 }
 

@@ -1,7 +1,7 @@
-import { activities, reminders } from './_lib/db/schema';
-import { fetchMarkdownFromGitHub } from './_lib/github';
-import { parseTableAfterHeader } from './_lib/markdown-parser';
-import { getEdgeDb } from './_lib/db/client';
+import { activities, reminders } from './_lib/db/schema.js';
+import { fetchMarkdownFromGitHub } from './_lib/github.js';
+import { parseTableAfterHeader } from './_lib/markdown-parser.js';
+import { getEdgeDb } from './_lib/db/client.js';
 
 export const config = {
   runtime: 'edge',
@@ -151,8 +151,8 @@ export default async function handler() {
       db ? db.select().from(reminders) : Promise.resolve([]),
     ]);
 
-    const targetMap = new Map(targetRows.map(t => [t.id, t.company]));
-    const partnerMap = new Map(partnerRows.map(p => [p.id, p.name]));
+    const targetMap = new Map<string, string>(targetRows.map(t => [t.id, t.company] as [string, string]));
+    const partnerMap = new Map<string, string>(partnerRows.map(p => [p.id, p.name] as [string, string]));
 
     const recentActivities = activityRows.filter((activity) => {
       const createdAt = new Date(activity.createdAt);

@@ -1,5 +1,6 @@
 import { drizzle } from 'drizzle-orm/libsql';
 import { createClient } from '@libsql/client';
+import * as schema from './schema.js';
 
 export function getEdgeDb() {
   const url = process.env.TURSO_DATABASE_URL;
@@ -10,5 +11,5 @@ export function getEdgeDb() {
     authToken: process.env.TURSO_AUTH_TOKEN,
   });
 
-  return drizzle(client);
+  return drizzle(client, { schema });
 }

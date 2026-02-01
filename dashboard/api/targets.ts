@@ -1,8 +1,8 @@
-import { stateOverrides, nextActionOverrides } from './_lib/db/schema';
+import { stateOverrides, nextActionOverrides } from './_lib/db/schema.js';
 import { eq } from 'drizzle-orm';
-import { fetchMarkdownFromGitHub } from './_lib/github';
-import { parseTableAfterHeader } from './_lib/markdown-parser';
-import { getEdgeDb } from './_lib/db/client';
+import { fetchMarkdownFromGitHub } from './_lib/github.js';
+import { parseTableAfterHeader } from './_lib/markdown-parser.js';
+import { getEdgeDb } from './_lib/db/client.js';
 
 export const config = {
   runtime: 'edge',
@@ -53,11 +53,11 @@ export default async function handler() {
     ]);
 
     // Create lookup maps for overrides
-    const stateOverrideMap = new Map(
-      dbStateOverrides.map(o => [o.entityId, { state: o.state, lastTouch: o.lastTouch }])
+    const stateOverrideMap = new Map<string, { state: string; lastTouch: string }>(
+      dbStateOverrides.map(o => [o.entityId, { state: o.state, lastTouch: o.lastTouch }] as [string, { state: string; lastTouch: string }])
     );
-    const nextActionOverrideMap = new Map(
-      dbNextActionOverrides.map(o => [o.entityId, { nextAction: o.nextAction, dueDate: o.dueDate }])
+    const nextActionOverrideMap = new Map<string, { nextAction: string; dueDate: string | null }>(
+      dbNextActionOverrides.map(o => [o.entityId, { nextAction: o.nextAction, dueDate: o.dueDate }] as [string, { nextAction: string; dueDate: string | null }])
     );
 
     const activeTable = parseTableAfterHeader(content, 'Active Pipeline');

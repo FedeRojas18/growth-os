@@ -1,5 +1,5 @@
-import { fetchMarkdownFromGitHub } from './_lib/github';
-import { parseTableAfterHeader } from './_lib/markdown-parser';
+import { fetchMarkdownFromGitHub } from './_lib/github.js';
+import { parseTableAfterHeader } from './_lib/markdown-parser.js';
 
 export const config = {
   runtime: 'edge',

@@ -6,7 +6,6 @@ export async function fetchMarkdownFromGitHub(path: string): Promise<string> {
     headers: {
       'Accept': 'text/plain',
     },
-    next: { revalidate: 60 } // Cache for 60 seconds
   });
 
   if (!response.ok) {

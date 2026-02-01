@@ -1,5 +1,5 @@
-import { activities } from './_lib/db/schema';
-import { getEdgeDb } from './_lib/db/client';
+import { activities } from './_lib/db/schema.js';
+import { getEdgeDb } from './_lib/db/client.js';
 
 export const config = {
   runtime: 'edge',

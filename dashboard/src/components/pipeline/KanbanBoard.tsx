@@ -42,6 +42,41 @@ const SUGGESTED_ACTIONS: Record<TargetState, { text: string; days: number } | nu
 };
 
 const SUPPRESSION_TTL_MS = 6 * 60 * 60 * 1000; // 6 hours
+const LOCAL_STATE_OVERRIDES_KEY = 'growthos:stateOverrides';
+
+type LocalStateOverride = { state: TargetState; lastTouch: string; updatedAt: number };
+
+function readLocalStateOverrides(): Record<string, LocalStateOverride> {
+  if (typeof window === 'undefined') return {};
+  try {
+    const raw = window.localStorage.getItem(LOCAL_STATE_OVERRIDES_KEY);
+    if (!raw) return {};
+    return JSON.parse(raw) as Record<string, LocalStateOverride>;
+  } catch {
+    return {};
+  }
+}
+
+function writeLocalStateOverride(entityId: string, state: TargetState, lastTouch: string) {
+  if (typeof window === 'undefined') return;
+  const overrides = readLocalStateOverrides();
+  overrides[entityId] = { state, lastTouch, updatedAt: Date.now() };
+  window.localStorage.setItem(LOCAL_STATE_OVERRIDES_KEY, JSON.stringify(overrides));
+}
+
+function applyLocalOverrides(targets: Target[]) {
+  const overrides = readLocalStateOverrides();
+  if (!overrides || Object.keys(overrides).length === 0) return targets;
+  return targets.map((target) => {
+    const override = overrides[target.id];
+    if (!override) return target;
+    return {
+      ...target,
+      state: override.state,
+      lastTouch: override.lastTouch || target.lastTouch,
+    };
+  });
+}
 
 function getSuppressionKey(entityId: string, from: string, to: string) {
   return `growthos:suggestion:${entityId}:${from}:${to}`;
@@ -90,7 +125,7 @@ export function KanbanBoard({ targets, onTargetStateChange }: KanbanBoardProps) 
   const lastSignatureRef = useRef(targetsSignature);
   useEffect(() => {
     if (targetsSignature !== lastSignatureRef.current) {
-      setLocalTargets(targets);
+      setLocalTargets(applyLocalOverrides(targets));
       lastSignatureRef.current = targetsSignature;
     }
   }, [targetsSignature, targets]);
@@ -210,12 +245,18 @@ export function KanbanBoard({ targets, onTargetStateChange }: KanbanBoardProps) 
       onTargetStateChange?.(targetId, newState, oldState);
     } catch (error) {
       console.error('Error updating target state:', error);
-      // Revert on error
-      setLocalTargets(prev =>
+      const status = (error as { status?: number }).status;
+      if (status === 503) {
+        // Persist locally when DB is not configured (prod misconfig fallback)
+        writeLocalStateOverride(targetId, newState, new Date().toISOString().split('T')[0]);
+      } else {
+        // Revert on real error
+        setLocalTargets(prev =>
           prev.map(t =>
             t.id === targetId ? { ...t, state: oldState } : t
           )
         );
+      }
     }
     dragSourceRef.current = null;
 

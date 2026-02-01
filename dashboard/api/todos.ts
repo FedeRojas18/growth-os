@@ -1,7 +1,7 @@
-import { reminders, nextActionOverrides } from './_lib/db/schema';
-import { fetchMarkdownFromGitHub } from './_lib/github';
-import { parseTableAfterHeader } from './_lib/markdown-parser';
-import { getEdgeDb } from './_lib/db/client';
+import { reminders, nextActionOverrides } from './_lib/db/schema.js';
+import { fetchMarkdownFromGitHub } from './_lib/github.js';
+import { parseTableAfterHeader } from './_lib/markdown-parser.js';
+import { getEdgeDb } from './_lib/db/client.js';
 
 export const config = {
   runtime: 'edge',

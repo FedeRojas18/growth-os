@@ -1,6 +1,6 @@
-import { stateOverrides, activities } from './_lib/db/schema';
+import { stateOverrides, activities } from './_lib/db/schema.js';
 import { eq, and } from 'drizzle-orm';
-import { getEdgeDb } from './_lib/db/client';
+import { getEdgeDb } from './_lib/db/client.js';
 
 export const config = {
   runtime: 'edge',

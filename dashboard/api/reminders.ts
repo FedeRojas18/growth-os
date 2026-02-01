@@ -1,6 +1,6 @@
-import { reminders } from './_lib/db/schema';
+import { reminders } from './_lib/db/schema.js';
 import { eq, and, lte, gte, desc } from 'drizzle-orm';
-import { getEdgeDb } from './_lib/db/client';
+import { getEdgeDb } from './_lib/db/client.js';
 
 export const config = {
   runtime: 'edge',
