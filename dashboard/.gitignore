@@ -1,3 +1,14 @@
+# Database
+local.db
+*.db
+
+# Environment
+.env
+.env.*
+
+# Vercel
+.vercel
+
 # Logs
 logs
 *.log

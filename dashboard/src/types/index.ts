@@ -9,6 +9,7 @@ export interface Target {
   lastTouch: string;
   channel: string;
   nextAction: string;
+  nextActionDueDate: string | null;
   owner: string;
   isStale: boolean;
   daysInState: number;
@@ -39,6 +40,7 @@ export interface Partner {
   keyContact: string;
   lastTouch: string;
   nextAction: string;
+  nextActionDueDate: string | null;
   owner: string;
   isStale: boolean;
 }
@@ -70,5 +72,34 @@ export interface Metrics {
   status: 'green' | 'yellow' | 'red';
   pipelineSummary: PipelineSummary;
   partnerSummary: PartnerSummary;
+  lastUpdated: string;
+}
+
+export interface TodoItem {
+  id: string;
+  itemType: 'reminder' | 'next_action';
+  entityType: 'target' | 'partner';
+  entityId: string;
+  entityName: string;
+  entityTag?: string;
+  dueDate: string;
+  text: string;
+  isComplete?: boolean;
+  sourceId: number;
+}
+
+export interface TodosResponse {
+  items: TodoItem[];
+  lastUpdated: string;
+}
+
+export interface DigestResponse {
+  markdown: string;
+}
+
+export interface InsightsResponse {
+  touchesByDay: Array<{ date: string; count: number }>;
+  activityByTarget: Array<{ entityId: string; count: number }>;
+  stateChanges: Array<{ entityId: string; from?: string; to?: string; createdAt: string }>;
   lastUpdated: string;
 }

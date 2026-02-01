@@ -3,9 +3,12 @@ import { Check, Circle, TrendingUp, Users, FileText, Target } from 'lucide-react
 
 interface ScorecardProps {
   metrics: Metrics;
+  compact?: boolean;
+  className?: string;
+  bodyClassName?: string;
 }
 
-export function Scorecard({ metrics }: ScorecardProps) {
+export function Scorecard({ metrics, compact = false, className, bodyClassName }: ScorecardProps) {
   const statusColors = {
     green: { bg: 'bg-emerald-500', ring: '#10b981', text: 'text-emerald-600' },
     yellow: { bg: 'bg-amber-500', ring: '#f59e0b', text: 'text-amber-600' },
@@ -15,10 +18,14 @@ export function Scorecard({ metrics }: ScorecardProps) {
   const status = statusColors[metrics.status];
   const scorePercentage = (metrics.score / 5) * 100;
 
+  const headerPadding = compact ? 'p-4' : 'p-5';
+  const rowPadding = compact ? 'px-4 py-2.5' : 'px-5 py-3.5';
+  const progressPadding = compact ? 'px-4 py-2.5' : 'px-5 py-3.5';
+
   return (
-    <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+    <div className={`bg-white rounded-xl border border-gray-200 overflow-hidden ${className || ''}`}>
       {/* Header with Score */}
-      <div className="p-5 border-b border-gray-100">
+      <div className={`${headerPadding} border-b border-gray-100`}>
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-base font-semibold text-gray-900 tracking-tight">Weekly Scorecard</h2>
@@ -31,11 +38,12 @@ export function Scorecard({ metrics }: ScorecardProps) {
       </div>
 
       {/* Metrics List */}
-      <div className="divide-y divide-gray-100">
+      <div className={`divide-y divide-gray-100 ${bodyClassName || ''}`}>
         <BooleanMetric
           icon={<FileText className="w-4 h-4" />}
           label="Test plan shipped"
           value={metrics.testPlanShipped}
+          className={rowPadding}
         />
 
         <ProgressMetric
@@ -43,6 +51,7 @@ export function Scorecard({ metrics }: ScorecardProps) {
           label="Targets added"
           current={metrics.targetsAdded}
           goal={metrics.targetGoal}
+          className={progressPadding}
         />
 
         <ProgressMetric
@@ -50,6 +59,7 @@ export function Scorecard({ metrics }: ScorecardProps) {
           label="Pipeline state changes"
           current={metrics.pipelineStateChanges}
           goal={metrics.stateChangeGoal}
+          className={progressPadding}
         />
 
         <ProgressMetric
@@ -57,12 +67,14 @@ export function Scorecard({ metrics }: ScorecardProps) {
           label="Partner conversations"
           current={metrics.partnerConversations}
           goal={metrics.partnerGoal}
+          className={progressPadding}
         />
 
         <BooleanMetric
           icon={<FileText className="w-4 h-4" />}
           label="Exec update shipped"
           value={metrics.execUpdateShipped}
+          className={rowPadding}
         />
       </div>
     </div>
@@ -118,11 +130,12 @@ interface BooleanMetricProps {
   icon: React.ReactNode;
   label: string;
   value: boolean;
+  className?: string;
 }
 
-function BooleanMetric({ icon, label, value }: BooleanMetricProps) {
+function BooleanMetric({ icon, label, value, className }: BooleanMetricProps) {
   return (
-    <div className="flex items-center gap-3 px-5 py-3.5">
+    <div className={`flex items-center gap-3 ${className || 'px-5 py-3.5'}`}>
       <div className={`
         w-8 h-8 rounded-lg flex items-center justify-center
         ${value ? 'bg-emerald-50 text-emerald-600' : 'bg-gray-100 text-gray-400'}
@@ -149,14 +162,15 @@ interface ProgressMetricProps {
   label: string;
   current: number;
   goal: number;
+  className?: string;
 }
 
-function ProgressMetric({ icon, label, current, goal }: ProgressMetricProps) {
+function ProgressMetric({ icon, label, current, goal, className }: ProgressMetricProps) {
   const percentage = Math.min((current / goal) * 100, 100);
   const isComplete = current >= goal;
 
   return (
-    <div className="px-5 py-3.5">
+    <div className={className || 'px-5 py-3.5'}>
       <div className="flex items-center gap-3 mb-2">
         <div className={`
           w-8 h-8 rounded-lg flex items-center justify-center

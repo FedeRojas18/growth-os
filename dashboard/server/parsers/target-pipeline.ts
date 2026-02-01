@@ -1,6 +1,9 @@
 import fs from 'fs/promises';
 import path from 'path';
 import { parseTableAfterHeader } from './markdown-parser.js';
+import { db } from '../db/client.js';
+import { stateOverrides, nextActionOverrides } from '../db/schema.js';
+import { eq } from 'drizzle-orm';
 
 export type TargetState = 'New' | 'Contacted' | 'Replied' | 'Meeting' | 'Passed' | 'Closed-Lost' | 'Nurture';
 
@@ -13,6 +16,7 @@ export interface Target {
   lastTouch: string;
   channel: string;
   nextAction: string;
+  nextActionDueDate: string | null;
   owner: string;
   isStale: boolean;
   daysInState: number;
@@ -34,7 +38,21 @@ export interface TargetPipelineData {
 
 export async function parseTargetPipeline(rootDir: string): Promise<TargetPipelineData> {
   const filePath = path.join(rootDir, 'KNOWLEDGE', 'target-pipeline.md');
-  const content = await fs.readFile(filePath, 'utf-8');
+
+  // Fetch markdown and database overrides in parallel
+  const [content, dbStateOverrides, dbNextActionOverrides] = await Promise.all([
+    fs.readFile(filePath, 'utf-8'),
+    db.select().from(stateOverrides).where(eq(stateOverrides.entityType, 'target')),
+    db.select().from(nextActionOverrides).where(eq(nextActionOverrides.entityType, 'target')),
+  ]);
+
+  // Create lookup maps for overrides
+  const stateOverrideMap = new Map(
+    dbStateOverrides.map(o => [o.entityId, { state: o.state, lastTouch: o.lastTouch }])
+  );
+  const nextActionOverrideMap = new Map(
+    dbNextActionOverrides.map(o => [o.entityId, { nextAction: o.nextAction, dueDate: o.dueDate }])
+  );
 
   // Parse active pipeline
   const activeTable = parseTableAfterHeader(content, 'Active Pipeline');
@@ -47,18 +65,30 @@ export async function parseTargetPipeline(rootDir: string): Promise<TargetPipeli
         continue;
       }
 
-      const lastTouch = row['Last Touch'] || '';
+      const id = slugify(row['Company']);
+
+      // Apply state override if exists
+      const stateOverride = stateOverrideMap.get(id);
+      const state = (stateOverride?.state || row['State'] || 'New') as TargetState;
+      const lastTouch = stateOverride?.lastTouch || row['Last Touch'] || '';
+
+      // Apply next action override if exists
+      const nextActionOverride = nextActionOverrideMap.get(id);
+      const nextAction = nextActionOverride?.nextAction || row['Next Action'] || '';
+      const nextActionDueDate = nextActionOverride?.dueDate || null;
+
       const daysAgo = calculateDaysAgo(lastTouch);
 
       targets.push({
-        id: slugify(row['Company']),
+        id,
         company: row['Company'] || '',
         buFit: row['BU Fit'] || '',
         trigger: row['Trigger'] || '',
-        state: (row['State'] || 'New') as TargetState,
+        state,
         lastTouch,
         channel: row['Channel'] || '',
-        nextAction: row['Next Action'] || '',
+        nextAction,
+        nextActionDueDate,
         owner: row['Owner'] || 'TBD',
         isStale: daysAgo > 14,
         daysInState: daysAgo
@@ -81,6 +111,7 @@ export async function parseTargetPipeline(rootDir: string): Promise<TargetPipeli
         lastTouch: row['Closed Date'] || '',
         channel: '',
         nextAction: '',
+        nextActionDueDate: null,
         owner: '',
         isStale: false,
         daysInState: 0
@@ -103,6 +134,7 @@ export async function parseTargetPipeline(rootDir: string): Promise<TargetPipeli
         lastTouch: row['Nurture Date'] || '',
         channel: '',
         nextAction: row['Re-engage Trigger'] || '',
+        nextActionDueDate: null,
         owner: '',
         isStale: false,
         daysInState: 0

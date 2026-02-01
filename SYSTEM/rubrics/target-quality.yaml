@@ -1,0 +1,58 @@
+# SYSTEM/rubrics/target-quality.yaml
+# Scoring rubric for Target Builder output
+
+metadata:
+  name: "Target Quality Rubric"
+  version: "1.0.0"
+  agent: "target_builder"
+  updated: "2026-01-31"
+
+threshold: 0.85
+
+dimensions:
+  trigger_validity:
+    weight: 0.30
+    description: "Target has valid trigger from Trigger Library"
+    scoring:
+      1.0: "Exact trigger library match with source URL provided"
+      0.7: "Trigger type matches library but source is weak or missing"
+      0.4: "Trigger is inferred, not explicitly stated"
+      0.0: "No trigger identified or trigger type not in library"
+
+  trigger_recency:
+    weight: 0.20
+    description: "Trigger is within acceptable age window"
+    scoring:
+      1.0: "Trigger occurred < 14 days ago"
+      0.8: "Trigger occurred 14-30 days ago"
+      0.5: "Trigger occurred 30-60 days ago (funding/treasury only)"
+      0.0: "Trigger is older than maximum allowed window"
+
+  buyer_identified:
+    weight: 0.20
+    description: "Decision-maker identified with contact information"
+    scoring:
+      1.0: "Full name + job title + LinkedIn URL provided"
+      0.8: "Full name + job title provided"
+      0.5: "Job title only (no specific name)"
+      0.0: "No buyer information provided"
+
+  bu_fit:
+    weight: 0.15
+    description: "Clear Business Unit assignment"
+    scoring:
+      1.0: "Clear primary BU (Bitwage, TeamPay, or Mining)"
+      0.7: "Dual BU fit identified with primary recommendation"
+      0.3: "Ambiguous BU fit, requires clarification"
+      0.0: "No clear BU fit for any product line"
+
+  dedup_check:
+    weight: 0.15
+    description: "Target not recently contacted"
+    scoring:
+      1.0: "Company not found in target-history.md"
+      0.5: "Company in history but last contact > 90 days ago"
+      0.0: "Company contacted within past 90 days"
+
+# Weights must sum to 1.0
+# Verify: 0.30 + 0.20 + 0.20 + 0.15 + 0.15 = 1.00

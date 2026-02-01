@@ -1,3 +1,7 @@
+import { drizzle } from 'drizzle-orm/libsql';
+import { createClient } from '@libsql/client';
+import { stateOverrides, nextActionOverrides } from './_lib/db/schema';
+import { eq } from 'drizzle-orm';
 import { fetchMarkdownFromGitHub } from './_lib/github';
 import { parseTableAfterHeader } from './_lib/markdown-parser';
 
@@ -16,9 +20,18 @@ interface Target {
   lastTouch: string;
   channel: string;
   nextAction: string;
+  nextActionDueDate: string | null;
   owner: string;
   isStale: boolean;
   daysInState: number;
+}
+
+function getDb() {
+  const client = createClient({
+    url: process.env.TURSO_DATABASE_URL || 'file:./local.db',
+    authToken: process.env.TURSO_AUTH_TOKEN,
+  });
+  return drizzle(client);
 }
 
 function slugify(text: string): string {
@@ -39,7 +52,22 @@ function calculateDaysAgo(dateStr: string): number {
 
 export default async function handler() {
   try {
-    const content = await fetchMarkdownFromGitHub('KNOWLEDGE/target-pipeline.md');
+    const db = getDb();
+
+    // Fetch markdown data and database overrides in parallel
+    const [content, dbStateOverrides, dbNextActionOverrides] = await Promise.all([
+      fetchMarkdownFromGitHub('KNOWLEDGE/target-pipeline.md'),
+      db.select().from(stateOverrides).where(eq(stateOverrides.entityType, 'target')),
+      db.select().from(nextActionOverrides).where(eq(nextActionOverrides.entityType, 'target')),
+    ]);
+
+    // Create lookup maps for overrides
+    const stateOverrideMap = new Map(
+      dbStateOverrides.map(o => [o.entityId, { state: o.state, lastTouch: o.lastTouch }])
+    );
+    const nextActionOverrideMap = new Map(
+      dbNextActionOverrides.map(o => [o.entityId, { nextAction: o.nextAction, dueDate: o.dueDate }])
+    );
 
     const activeTable = parseTableAfterHeader(content, 'Active Pipeline');
     const targets: Target[] = [];
@@ -50,18 +78,30 @@ export default async function handler() {
           continue;
         }
 
-        const lastTouch = row['Last Touch'] || '';
+        const id = slugify(row['Company']);
+
+        // Apply state override if exists
+        const stateOverride = stateOverrideMap.get(id);
+        const state = (stateOverride?.state || row['State'] || 'New') as TargetState;
+        const lastTouch = stateOverride?.lastTouch || row['Last Touch'] || '';
+
+        // Apply next action override if exists
+        const nextActionOverride = nextActionOverrideMap.get(id);
+        const nextAction = nextActionOverride?.nextAction || row['Next Action'] || '';
+        const nextActionDueDate = nextActionOverride?.dueDate || null;
+
         const daysAgo = calculateDaysAgo(lastTouch);
 
         targets.push({
-          id: slugify(row['Company']),
+          id,
           company: row['Company'] || '',
           buFit: row['BU Fit'] || '',
           trigger: row['Trigger'] || '',
-          state: (row['State'] || 'New') as TargetState,
+          state,
           lastTouch,
           channel: row['Channel'] || '',
-          nextAction: row['Next Action'] || '',
+          nextAction,
+          nextActionDueDate,
           owner: row['Owner'] || 'TBD',
           isStale: daysAgo > 14,
           daysInState: daysAgo

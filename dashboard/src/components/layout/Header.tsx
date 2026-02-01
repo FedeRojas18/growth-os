@@ -10,6 +10,14 @@ const pageTitles: Record<string, { title: string; subtitle: string }> = {
     title: 'Targets',
     subtitle: 'Track targets from first contact through handoff',
   },
+  '/insights': {
+    title: 'Insights',
+    subtitle: 'Growth intelligence and strategic signals',
+  },
+  '/todos': {
+    title: 'Todos',
+    subtitle: 'What needs attention today',
+  },
   '/partners': {
     title: 'Partners',
     subtitle: 'Manage partner relationships and pipeline',

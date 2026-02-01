@@ -1,3 +1,5 @@
+> Archived on February 1, 2026. Superseded by /README.md. Kept for historical reference.
+
 # Growth OS v3
 
 **Bitcoin Ecosystem Channel Operating System**

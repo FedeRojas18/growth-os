@@ -1,3 +1,5 @@
+import { useDroppable } from '@dnd-kit/core';
+import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import type { Target, TargetState } from '../../types';
 import { TargetCard } from './TargetCard';
 import { EmptyColumn } from '../shared/EmptyState';
@@ -19,10 +21,20 @@ const stateConfig: Record<TargetState, { color: string; bgColor: string }> = {
 };
 
 export function KanbanColumn({ state, targets, onTargetClick }: KanbanColumnProps) {
+  const { isOver, setNodeRef } = useDroppable({
+    id: state,
+  });
+
   const config = stateConfig[state];
 
   return (
-    <div className="flex-shrink-0 w-[280px]">
+    <div
+      ref={setNodeRef}
+      className={`
+        flex-shrink-0 w-[280px] min-h-[200px] p-2 -m-2 rounded-xl transition-colors
+        ${isOver ? 'bg-indigo-50 ring-2 ring-indigo-200 ring-inset' : ''}
+      `}
+    >
       {/* Column Header */}
       <div className="flex items-center gap-2.5 mb-4 px-1">
         <div className={`w-2 h-2 rounded-full ${config.color}`} />
@@ -36,24 +48,30 @@ export function KanbanColumn({ state, targets, onTargetClick }: KanbanColumnProp
       </div>
 
       {/* Cards */}
-      <div className="space-y-3">
-        {targets.map((target, index) => (
-          <div
-            key={target.id}
-            className="animate-fade-in"
-            style={{ animationDelay: `${index * 0.05}s` }}
-          >
-            <TargetCard
-              target={target}
-              onClick={() => onTargetClick?.(target)}
-            />
-          </div>
-        ))}
+      <SortableContext
+        id={state}
+        items={targets.map((target) => target.id)}
+        strategy={verticalListSortingStrategy}
+      >
+        <div className="space-y-3">
+          {targets.map((target, index) => (
+            <div
+              key={target.id}
+              className="animate-fade-in"
+              style={{ animationDelay: `${index * 0.05}s` }}
+            >
+              <TargetCard
+                target={target}
+                onClick={() => onTargetClick?.(target)}
+              />
+            </div>
+          ))}
 
-        {targets.length === 0 && (
-          <EmptyColumn message="No targets" />
-        )}
-      </div>
+          {targets.length === 0 && (
+            <EmptyColumn message={isOver ? 'Drop here' : 'No targets'} />
+          )}
+        </div>
+      </SortableContext>
     </div>
   );
 }

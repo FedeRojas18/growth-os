@@ -1,0 +1,42 @@
+# SYSTEM/config/agents.yaml
+# Agent configuration registry
+# Adding a new agent = adding an entry here + creating rubric/prompts
+
+version: "1.0.0"
+
+defaults:
+  pass_threshold: 0.85
+  max_attempts: 3
+  escalate_on_fail: true
+
+agents:
+  target_builder:
+    name: "Target Builder"
+    description: "Generate trigger-qualified target list from thesis inputs"
+    rubric: "rubrics/target-quality.yaml"
+    producer: "prompts/producers/target-builder.md"
+    evaluator: "prompts/evaluators/target-builder-evaluator.md"
+    reviser: "prompts/revisers/target-builder-reviser.md"
+    threshold: 0.85
+    max_attempts: 3
+    escalate_on_fail: true
+    inputs:
+      - thesis
+      - trigger_library
+      - target_history
+      - active_pipeline
+    outputs:
+      - target_list_md
+      - dedup_additions
+
+  # TEMPLATE: Copy this block to add new agents
+  # signal_scanner:
+  #   name: "Signal Scanner"
+  #   description: "Scan ecosystem sources for actionable signals"
+  #   rubric: "rubrics/signal-quality.yaml"
+  #   producer: "prompts/producers/signal-scanner.md"
+  #   evaluator: "prompts/evaluators/signal-scanner-evaluator.md"
+  #   reviser: "prompts/revisers/signal-scanner-reviser.md"
+  #   threshold: 0.85
+  #   max_attempts: 2
+  #   escalate_on_fail: true
